@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form onsubmit="p(e)">
+    <label for="title">标题</label>
+    <input type="text" id="title">
+    <br>
+    <label for="content">内容</label>
+    <textarea rows="5" id="content"></textarea>
+    <button type="button" onclick="submit()">提交</button>
+</form>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script>
+    function p(e){
+		e.preventDefault()
+    }
+	function submit(){
+		axios({
+            url: "/article/upload",
+            method: 'post',
+            data:{
+				title: document.getElementById("title").value,
+	            content: document.getElementById("content").value,
+	            tags: ['test']
+            }
+        })
+    }
+</script>
+</body>
+</html>

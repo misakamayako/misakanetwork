@@ -1,0 +1,194 @@
+<h1><a href="#intellij-markdown-build-status-maven-central-official-jetbrains-project-ir" id="intellij-markdown-build-status-maven-central-official-jetbrains-project-ir">intellij-markdown <a href="https://teamcity.jetbrains.com/viewType.html?buildTypeId=IntelliJMarkdownParser_BuildForIdeaPlugin&amp;guest=1"><img src="https://teamcity.jetbrains.com/app/rest/builds/buildType:(id:IntelliJMarkdownParser_BuildForIdeaPlugin)/statusIcon.svg?guest=1" alt="Build Status" /></a> <a href="https://search.maven.org/artifact/org.jetbrains/markdown"><img src="https://img.shields.io/maven-central/v/org.jetbrains/markdown" alt="Maven Central" /></a> <a href="https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub"><img src="http://jb.gg/badges/official.svg" alt="official JetBrains project" /></a> <a href="https://kotl.in/jsirsupported"><img src="https://img.shields.io/badge/Kotlin%2FJS-IR%20supported-yellow" alt="IR" /></a></a></h1>
+<h2><a href="#multiplatform-markdown-processor-written-in-kotlin" id="multiplatform-markdown-processor-written-in-kotlin">Multiplatform Markdown processor written in Kotlin</a></h2>
+<h2><a href="#introduction" id="introduction">Introduction</a></h2>
+<p><a href="https://github.com/valich/intellij-markdown">intellij-markdown</a> is an extensible markdown processor.<br />
+It aims to suit the following needs:<br />
+- Use one code base for both client and server-side processing;<br />
+- Produce consistent output on different platforms;<br />
+- Support different flavours;<br />
+- Be easily extensible.</p>
+<p>The processor is written in pure <a href="https://github.com/JetBrains/kotlin">Kotlin</a>(with a little <a href="https://github.com/jflex-de/jflex">flex</a>) so it can be compiled to both JS and Java bytecode<br />
+and thus can be used everywhere.</p>
+<h2><a href="#usage" id="usage">Usage</a></h2>
+<h3><a href="#adding-intellij-markdown-as-a-dependency" id="adding-intellij-markdown-as-a-dependency">Adding <code>intellij-markdown</code> as a dependency</a></h3>
+<p>The library is hosted in <a href="https://search.maven.org/artifact/org.jetbrains/markdown">mavenCentral</a>, so you need it configured like this:</p>
+<pre><code class="language-groovy">repositories {
+    mavenCentral()
+}
+</code></pre>
+<p>This is a <a href="https://kotlinlang.org/docs/reference/multiplatform.html">Kotlin Multiplatform</a> project<br />
+and hence is better served under gradle. If you have fresh enough gradle (<code>&gt;= 5.4</code>), you can just<br />
+add the main artifact as a dependency:</p>
+<pre><code class="language-groovy">dependencies {
+    // other deps...
+
+    implementation &quot;org.jetbrains:markdown:0.2.0.pre-55&quot;
+}
+</code></pre>
+<p>Gradle should resolve your target platform and decide which artifact (jvm or js) to download.</p>
+<p>If you are writing <strong>multiplatform</strong> project as well, you can add one dependency for <code>commonMain</code>:</p>
+<pre><code class="language-groovy">commonMain {
+     dependencies {
+         implementation &quot;org.jetbrains:markdown:0.2.0.pre-55&quot;
+     }
+ }
+</code></pre>
+<p>If you are using Maven or older gradle, you should specify the respective artifact for your platform,<br />
+e.g.<br />
+* <code>org.jetbrains:markdown-jvm:0.2.0.pre-55</code> for jvm version<br />
+* <code>org.jetbrains:markdown-js:0.2.0.pre-55</code> for js version</p>
+<h3><a href="#using-intellij-markdown-for-parsing-and-generating-html" id="using-intellij-markdown-for-parsing-and-generating-html">Using <code>intellij-markdown</code> for parsing and generating html</a></h3>
+<p>One of the goals of this project is to provide flexibility in terms of the tasks being solved.<br />
+<a href="https://github.com/JetBrains/intellij-plugins/tree/master/markdown">Markdown plugin</a> for JetBrains IDEs is an example of usage when markdown processing is done<br />
+in several stages:</p>
+<ul>
+<li>Parse block structure without parsing inlines to provide lazy parsable blocks for IDE;</li>
+<li>Quickly parse inlines of a given block to provide faster syntax highlighting update;</li>
+<li>Generate HTML for preview.</li>
+</ul>
+<p>These tasks may be completed independently according to the current needs.</p>
+<h4><a href="#simple-html-generation-kotlin" id="simple-html-generation-kotlin">Simple html generation (Kotlin)</a></h4>
+<pre><code class="language-kotlin">val src = &quot;Some *Markdown*&quot;
+val flavour = CommonMarkFlavourDescriptor()
+val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
+val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
+</code></pre>
+<h4><a href="#simple-html-generation-java" id="simple-html-generation-java">Simple html generation (Java)</a></h4>
+<pre><code class="language-java">final String src = &quot;Some *Markdown*&quot;;
+final MarkdownFlavourDescriptor flavour = new GFMFlavourDescriptor();
+final ASTNode parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(text);
+final String html = new HtmlGenerator(src, parsedTree, flavour, false).generateHtml()
+</code></pre>
+<h2><a href="#development-gotchas" id="development-gotchas">Development gotchas</a></h2>
+<ol>
+<li>The currently used CI is <a href="https://teamcity.jetbrains.com/project/IntelliJMarkdownParser?mode=builds">TeamCity</a>.</li>
+</ol>
+<p>Incoming pull requests will be tested there, you can check the build status (manually) via the link above.</p>
+<ol>
+<li>The only non-Kotlin files are <code>.flex</code> lexer definitions. They are used for generating lexers which are<br />
+the first stage of inlines parsing. Unfortunately, due to bugs, native <code>java-&gt;kt</code> conversion crashes for these files.</li>
+</ol>
+<p>So, conversion from <code>.flex</code> to respective Kotlin files deserves a special instruction (use IntelliJ please):<br />
+1. Install <code>grammar-kit</code> plugin, as will be suggested on <code>.flex</code> files opening.<br />
+1. Install <a href="https://github.com/valich/jflexToKotlin"><code>jflexToKotlin</code></a> plugin (manually, via settings).<br />
+1. Run <code>Run JFlex Generator</code> action while having <code>.flex</code> file opened.<br />
+* On the first run a dialog will open, suggesting to place to download jflex. Select project root,<br />
+then delete excessively downloaded <code>.skeleton</code> file.<br />
+1. A respective <code>_&lt;SomeName&gt;Lexer.java</code> will be generated somewhere. Move it near existing <code>_&lt;SomeName&gt;Lexer.kt</code>.<br />
+1. Delete <code>.kt</code> lexer.<br />
+1. Run <code>Convert JFlex Lexer to Kotlin</code> action while having the new <code>.java</code> file opened.<br />
+1. Fix the small problems such as imports in kt file. There should be no major issues; if there are,<br />
+feel free to complain :)</p>
+<h2><a href="#parsing-algorithm" id="parsing-algorithm">Parsing algorithm</a></h2>
+<p>The parsing process is held in two logical parts:</p>
+<ol>
+<li>Splitting the document into the blocks of logical structure (lists, blockquotes, paragraphs, etc.);</li>
+<li>Parsing the inline structure of the resulted blocks.</li>
+</ol>
+<p>This is the same way as the one being proposed in <a href="http://spec.commonmark.org/0.16/#appendix-a-a-parsing-strategy">Commonmark spec</a>.</p>
+<h3><a href="#building-the-logical-structure" id="building-the-logical-structure">Building the logical structure</a></h3>
+<p>Each (future) node (list, list item, blockquote, etc.) is associated with the so-called <em><a href="src/org/intellij/markdown/parser/markerblocks/MarkerBlock.kt">marker block</a></em>.<br />
+The rollback-free parsing algorithm is processing every token in the file, one by one.<br />
+Tokens are passed to the opened marker blocks, and each block chooses whether to:</p>
+<ul>
+<li>do nothing</li>
+<li>drop itself</li>
+<li>complete itself</li>
+</ul>
+<p>The <em><a href="src/org/intellij/markdown/parser/MarkerProcessor.kt">marker processor</a></em> stores the blocks, executes the actions chosen by the blocks, and, possibly, adds some new ones.</p>
+<h3><a href="#parsing-inlines" id="parsing-inlines">Parsing inlines</a></h3>
+<p>For the sake of speed and parsing convenience the text is passed to the <a href="src/org/intellij/markdown/lexer/MarkdownLexer.kt">lexer</a> at first. Then the resulting<br />
+set of tokens is processed in the special way.</p>
+<p>Since the inline constructs in markdown have some priorities<br />
+(i.e. if two different ones overlap, the parsing result depends on the their types, not their positions,<br />
+e.g. <code>*code, `not* emph`</code> and <code>`code, *not` emph*</code> are both code spans + literal asterisks), normal<br />
+recursive parsing is inapplicable.</p>
+<p>Still the parsing of the inlines is quite straightforward. For each inline construct there is a<br />
+particular <em><a href="src/org/intellij/markdown/parser/sequentialparsers/SequentialParser.kt">sequential parser</a></em> which accepts some input text and returns:</p>
+<ol>
+<li>The parsed ranges found in this text;</li>
+<li>The sub-text(s), which are to be passed to the subsequent inline parsers.</li>
+</ol>
+<h3><a href="#building-ast" id="building-ast">Building AST</a></h3>
+<p>After building logical structure and parsing inlines a set of ranges corresponding to some markdown<br />
+entities (i.e. nodes) is given. In order to work with the results effectively it ought to be converted to<br />
+the <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree" title="Wikipedia reference">AST</a>.</p>
+<p>As a result, a root <a href="src/org/intellij/markdown/ast/ASTNode.kt">AST node</a> corresponding to the parsed markdown document is returned. Each AST node has<br />
+own type which is called <a href="src/org/intellij/markdown/IElementType.kt">IElementType</a> as in IntelliJ Platform.</p>
+<h3><a href="#generating-html" id="generating-html">Generating HTML</a></h3>
+<p>For a given AST root a special <a href="https://en.wikipedia.org/wiki/Visitor_pattern" title="Wikipedia reference">visitor</a> to generate the resulting HTML is created. Using a<br />
+given mapping from IElementType to the <a href="src/org/intellij/markdown/html/GeneratingProvider.kt"><em>HTML generating provider</em></a> it processes the<br />
+parsed tree in <a href="https://en.wikipedia.org/wiki/Depth-first_search" title="Wikipedia reference">Depth-First order</a>, generating HTML pieces for on each node visit.</p>
+<h2><a href="#extending-the-parser" id="extending-the-parser">Extending the parser</a></h2>
+<p>Many routines in the above process can be extended or redefined by creating a different markdown flavours.<br />
+The minimal default is <a href="http://commonmark.org">CommonMark</a> which is implemented in this project.<br />
+Github Flavoured Markdown (which is also implemented) is an example of extending CommonMark flavour. It can be<br />
+used as a <a href="src/org/intellij/markdown/flavours/gfm/GFMFlavourDescriptor.kt">reference</a> for implementing your own<br />
+markdown features.</p>
+<p>Below is a tree representing a big part of the API.</p>
+<h2><a href="#api" id="api">API</a></h2>
+<ul>
+<li><a href="src/org/intellij/markdown/flavours/MarkdownFlavourDescriptor.kt"><code>MarkdownFlavourDescriptor</code></a><br />
+is a base class for extending markdown parser.
+<ul>
+<li>
+<p><a href="src/org/intellij/markdown/parser/MarkerProcessorFactory.kt"><code>markerProcessorFactory</code></a><br />
+is responsible for block structure customization.</p>
+<ul>
+<li><code>stateInfo</code> value allows to use a state during document parsing procedure.</li>
+</ul>
+<p><code>updateStateInfo(pos: LookaheadText.Position)</code> is called at the beginning of each position processing</p>
+<ul>
+<li>
+<p><code>populateConstraintsTokens</code> is called to create nodes for block structure markers at the beginning<br />
+of the lines (for example, <code>&gt;</code> characters constituting blockquotes)</p>
+</li>
+<li>
+<p><a href="src/org/intellij/markdown/parser/markerblocks/MarkerBlockProvider.kt"><code>getMarkerBlockProviders</code></a><br />
+is a place to (re)define types of block structures</p>
+</li>
+</ul>
+</li>
+<li>
+<p><a href="src/org/intellij/markdown/parser/sequentialparsers/SequentialParserManager.kt"><code>sequentialParserManager</code></a></p>
+</li>
+</ul>
+<p><code>getParserSequence</code> defines inlines parsing procedure. The method must return a list of SequentialParsers<br />
+where the earliest parsers have the biggest operation precedence. For example, to parse code spans and emph<br />
+with correct priority, the list should be [CodeSpanParser, EmphParser] but not the opposite.</p>
+<p><a href="src/org/intellij/markdown/parser/sequentialparsers/SequentialParser.kt"><code>SequentialParser</code></a> has only one method:</p>
+<p><code>parse(tokens: TokensCache, rangesToGlue: List&lt;IntRange&gt;): ParsingResult</code><br />
+* <code>tokens</code> is a special holder for the tokens returned by lexer<br />
+* <code>rangesToGlue</code> is a list of ranges in the document which are to be searched for the structures in question.</p>
+<pre><code>  Considering the input: ``A * emph `code * span` b * c `` for the emph parser ranges
+  [`A * emph `, ` b * c`] mean that emph must be searched in the input `A * emph | b * c`.
+
+  The method must essentially return the parsing result (nodes for the found structures) and the parts
+  of the text to be given to the next parsers.
+
+  Considering the same input for the code span parser the result would be `` `code * span` ``
+  of the type &quot;code span&quot; and the delegate pieces would be [`A * emph `, ` b * c`].
+</code></pre>
+<ul>
+<li>
+<p><a href="src/org/intellij/markdown/lexer/MarkdownLexer.kt"><code>createInlinesLexer</code></a> should return the lexer to split the text<br />
+to the tokens before inline parsing procedure run.</p>
+</li>
+<li>
+<p><a href="src/org/intellij/markdown/html/GeneratingProvider.kt"><code>createHtmlGeneratingProviders(linkMap: LinkMap, baseURI: URI?)</code></a><br />
+is the place where generated HTML is customized. This method should return a map which defines how to handle<br />
+the particular kinds of the nodes in the resulting tree.</p>
+</li>
+</ul>
+<p><code>linkMap</code> here is a precalculated information about the links defined in the document with the means of<br />
+link definition. <code>baseURI</code> is the URI to be considered the base path for the relative links resolving.<br />
+For example, given <code>baseUri='/user/repo-name/blob/master'</code> the link <code>foo/bar.png</code> should be transformed to<br />
+the <code>/user/repo-name/blob/master/foo/bar.png</code>.</p>
+<p>Each returned provider must implement <code>processNode(visitor: HtmlGenerator.HtmlGeneratingVisitor, text: String, node: ASTNode)</code><br />
+where<br />
+* <code>text</code> is the whole document being processed,<br />
+* <code>node</code> is the node being given to the provider,<br />
+* <code>visitor</code> is a special object responsible for the HTML generation.<br />
+See <a href="src/org/intellij/markdown/html/GeneratingProviders.kt"><code>GeneratingProviders.kt</code></a> for the samples.</p>
+</li>
+</ul>
