@@ -1,21 +1,19 @@
 package cn.com.misakanetwork
 
-import cn.com.misakanetwork.dao.ImgTagsDAO
 import cn.com.misakanetwork.dto.ImgTagDTO
 import io.ktor.html.*
 import kotlinx.html.*
-import kotlinx.html.stream.appendHTML
-import java.io.ByteArrayOutputStream
-import java.rmi.ServerException
 
-class Layout : Template<HTML> {
+class Layout<T : Template<FlowContent>>(private val template: T) : Template<HTML> {
     val keywords = Placeholder<HEAD>()
     val description = Placeholder<HEAD>()
-    val content = TemplatePlaceholder<ContentTemplate>()
+    val content = TemplatePlaceholder<T>()
+    val title = Placeholder<TITLE>()
 
     override fun HTML.apply() {
         lang = "zh-hans"
         head {
+            title
             meta(charset = "UTF-8")
             meta(name = "viewport",
                 content = "width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no")
@@ -25,28 +23,20 @@ class Layout : Template<HTML> {
         }
         body {
             classes = setOf("h-screen", "w-screen", "bg-gray-100")
-            insert(ContentTemplate(), content)
+            insert(template, content)
         }
     }
 }
 
-class ContentTemplate : Template<FlowContent> {
-    val anyThing = Placeholder<FlowContent>()
-    override fun FlowContent.apply() {
-        insert(anyThing)
-    }
-}
-
-class ImgFiles : Template<FlowContent> {
-    //    val contentClass = ;
+class ImgFiles(private val source: String, private val tags: List<ImgTags>,val title:String?) : Template<FlowContent> {
     val mainImage = TemplatePlaceholder<MainImage>()
-    val tags = PlaceholderList<DIV, FlowContent>()
+    val tagBlock = TemplatePlaceholder<ImgTags>()
     override fun FlowContent.apply() {
         div {
             classes = setOf("container", "grid", "grid-cols-12", "gap-4", "h-full")
             div {
                 classes = setOf("col-span-8", "h-full", "flex", "flex-col", "justify-center", "bg-stone-200")
-                insert(MainImage(), mainImage)
+                insert(MainImage(source), mainImage)
             }
             div {
                 classes = setOf("col-span-4", "py-2", "px-4")
@@ -57,29 +47,27 @@ class ImgFiles : Template<FlowContent> {
                 hr {
                     classes = setOf("mb-1")
                 }
-                if (!tags.isEmpty()) {
-                    each(tags) {
-                        insert(it)
-                    }
+                for (tag in tags) {
+                    insert(tag, tagBlock)
                 }
             }
         }
     }
 }
 
-class MainImage() : Template<FlowContent> {
-    val imgSrc = Placeholder<String>()
+class MainImage(val source: String) : Template<FlowContent> {
     override fun FlowContent.apply() {
         img {
-            src = imgSrc.toString()
+            src = source
             classes = setOf("cursor-pointer")
         }
     }
 }
 
-class ImgTags(private val tagInfo: ImgTagDTO) : Template<FlowContent> {
+class ImgTags(val tagInfo: ImgTagDTO) : Template<FlowContent> {
     override fun FlowContent.apply() {
-        div {
+        a {
+            href  = "/img/tags/?"
             classes = setOf("border",
                 "border-lime-500",
                 "rounded-lg",
@@ -87,7 +75,20 @@ class ImgTags(private val tagInfo: ImgTagDTO) : Template<FlowContent> {
                 "px-2",
                 "hover:border-lime-300",
                 "cursor-pointer")
-            tagInfo.text
+            +tagInfo.text
         }
+    }
+}
+
+
+class HTMLGroupByTagId:Template<FlowContent>{
+    override fun FlowContent.apply() {
+        TODO("Not yet implemented")
+    }
+}
+
+class HTMLImgUpload:Template<FlowContent>{
+    override fun FlowContent.apply() {
+        TODO("Not yet implemented")
     }
 }

@@ -1,10 +1,10 @@
 package cn.com.misakanetwork.controller
 
-//import cn.com.misakanetwork.Layout
-import cn.com.misakanetwork.ImgFiles
 import cn.com.misakanetwork.Layout
 import cn.com.misakanetwork.service.img.getImgTags
 import cn.com.misakanetwork.service.img.imgUploader
+import cn.com.misakanetwork.service.img.renderHTMLGroupByTagId
+import cn.com.misakanetwork.service.img.renderImgHtml
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.html.*
@@ -13,26 +13,37 @@ import io.ktor.routing.*
 
 fun imgController(app: Application) {
     app.routing {
-        get<ImgReader.Random> {
+        get<ImgReader.HTMLRandom> {
 
         }
-        get<ImgReader.Search> {
+        get<ImgReader.HTMLSearchImg> {
 
         }
-        get<ImgReader.SpecificImg> {
-            call.respondHtmlTemplate(Layout()){
-                content{
-                    anyThing{
-                        TODO("img element")
-                    }
+        get<ImgReader.HTMLGroupByTagId> {
+            val contentPage = renderHTMLGroupByTagId(it)
+            call.respondHtmlTemplate(Layout(contentPage)){
+                title{
+                    +"content."
+                }
+                content
+            }
+        }
+        get<ImgReader.HTMLSpecificImg> {
+            val contentPage = renderImgHtml(it.id)
+            call.respondHtmlTemplate(Layout(contentPage)) {
+                title{
+                    +("查看图片  " + (contentPage.title ?: ""))
+                }
+                content {
+                    mainImage
                 }
             }
         }
-        get<ImgReader.ImgTags> {
+        get<ImgReader.JSONImgTags> {
             call.respondHtml { getImgTags(it.keyWord) }
         }
         authenticate("auth-jwt") {
-            get<ImgReader.Upload> {
+            get<ImgReader.HTMLImgUpload> {
                 call.respondHtml { imgUploader() }
             }
         }
@@ -40,19 +51,22 @@ fun imgController(app: Application) {
 }
 
 @Location("/img")
-private class ImgReader {
+class ImgReader {
     @Location("/random")
-    class Random
+    class HTMLRandom
 
     @Location("/search")
-    data class Search(val page: Int, val count: Int, val text: String?)
+    data class HTMLSearchImg(val page: Int, val count: Int, val text: String?)
 
     @Location("/tags")
-    data class ImgTags(val keyWord: String?)
+    data class JSONImgTags(val keyWord: String?, val page: Int?)
+
+    @Location("/tags/{id}")
+    data class HTMLGroupByTagId(val id: Int)
 
     @Location("/upload")
-    class Upload
+    class HTMLImgUpload
 
     @Location("/{id}")
-    data class SpecificImg(val id: Int)
+    data class HTMLSpecificImg(val id: Int)
 }

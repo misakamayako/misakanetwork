@@ -1,1 +1,1 @@
-rootProject.name = "misakanetwork"
+rootProject.name = "misakanetwork-backend"

@@ -18,37 +18,6 @@ import kotlin.random.Random.Default.nextInt
 
 fun Application.authorization() {
     routing {
-        get("/login") {
-            call.respondHtml(HttpStatusCode.OK) {
-                body {
-                    form(method = FormMethod.post,
-                        action = "/login",
-                        encType = FormEncType.applicationXWwwFormUrlEncoded) {
-                        label {
-                            +"name"
-                        }
-                        input(name = "userName") {
-                            id = "userName"
-                            placeholder = "userName"
-                        }
-                        label {
-                            +"password"
-                        }
-                        input(name = "password", type = InputType.password) {
-                            id = "password"
-                            placeholder = "userName"
-                        }
-                        input(name = "id", type = InputType.hidden) {
-                            value = nextInt(1000).toString()
-                        }
-                        button(type = ButtonType.button) {
-                            +"提交"
-                        }
-                    }
-                    script(src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"){}
-                }
-            }
-        }
         post("/login") {
             val info = call.receive<UserInfo>()
             val user = database.from(Auth).select(Auth.userName)
