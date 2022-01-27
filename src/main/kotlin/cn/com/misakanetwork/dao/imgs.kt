@@ -56,5 +56,5 @@ object ImgFolderToTagsDAO : Table<ImgFolderToTag>("Img_Folder_To_Tag") {
 
 object ImgToTagsDAO : Table<ImgToTag>("Img_To_Tag") {
     val imgId = int("imgId").references(ImgDAO) { it.img }
-    val tagId = int("tagId").references(ImgTagsDAO){it.tag}
+    val tagId = int("tagId").references(ImgTagsDAO) { it.tag }
 }

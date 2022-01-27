@@ -6,7 +6,6 @@ import cn.com.misakanetwork.service.img.imgUploader
 import cn.com.misakanetwork.service.img.renderHTMLGroupByTagId
 import cn.com.misakanetwork.service.img.renderImgHtml
 import io.ktor.application.*
-import io.ktor.auth.*
 import io.ktor.html.*
 import io.ktor.locations.*
 import io.ktor.routing.*
@@ -42,11 +41,11 @@ fun imgController(app: Application) {
         get<ImgReader.JSONImgTags> {
             call.respondHtml { getImgTags(it.keyWord) }
         }
-        authenticate("auth-jwt") {
+//        authenticate("auth-jwt") {
             get<ImgReader.HTMLImgUpload> {
                 call.respondHtml { imgUploader() }
             }
-        }
+//        }
     }
 }
 

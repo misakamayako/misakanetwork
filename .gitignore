@@ -30,3 +30,7 @@ hs_err_pid*
 #configFile
 
 /src/main/resources/CryptoConfig.kt
+/src/main/kotlin/cn/com/misakanetwork/CryptoConfig.kt
+
+#local test file
+*.kts

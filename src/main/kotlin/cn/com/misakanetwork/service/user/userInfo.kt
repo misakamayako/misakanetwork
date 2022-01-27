@@ -4,10 +4,7 @@ import cn.com.misakanetwork.dao.UserDao
 import cn.com.misakanetwork.dto.LoginDTO
 import cn.com.misakanetwork.dto.Response
 import cn.com.misakanetwork.dto.UserDto
-import cn.com.misakanetwork.plugins.AuthenticationException
-import cn.com.misakanetwork.plugins.AuthorizationException
-import cn.com.misakanetwork.plugins.UserSession
-import cn.com.misakanetwork.plugins.database
+import cn.com.misakanetwork.plugins.*
 import cn.com.misakanetwork.tools.PasswordEncryption.authenticate
 import cn.com.misakanetwork.tools.PasswordEncryption.generateSalt
 import cn.com.misakanetwork.tools.PasswordEncryption.getEncryptedPassword
@@ -62,7 +59,7 @@ class UserService(private val call: ApplicationCall) {
     suspend fun put(loginDTO: LoginDTO) {
         val count = database.from(UserDao).select(UserDao.name).where { UserDao.name eq loginDTO.name }.totalRecords
         if (count != 0) {
-            throw AuthorizationException("该用户已注册")
+            throw NotAcceptableException("该用户已注册")
         }
         val newPrivateKey = generateSalt()
         val password = getEncryptedPassword(loginDTO.password, newPrivateKey)
