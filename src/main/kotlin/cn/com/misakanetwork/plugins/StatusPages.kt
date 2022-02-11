@@ -1,6 +1,6 @@
 package cn.com.misakanetwork.plugins
 
-import cn.com.misakanetwork.dto.Response
+import cn.com.misakanetwork.dto.ResponseDTO
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -32,7 +32,7 @@ fun Application.statusPages() {
 }
 
 fun back(httpStatusCode: HttpStatusCode, error: Exception) =
-    Response<String>(
+    ResponseDTO<String>(
         status = httpStatusCode.value,
         data = null,
         message = error.message ?: httpStatusCode.description

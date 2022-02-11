@@ -6,7 +6,7 @@ enum class OSSInfo(val bucket:String) {
     //图片收藏
     PICTURE("misaka-networks-picture"),
     //文章markdown存储
-    MARKDOWN(""),
+    MARKDOWN("misaka-networks-article"),
     //照片
     PHOTO("")
 }

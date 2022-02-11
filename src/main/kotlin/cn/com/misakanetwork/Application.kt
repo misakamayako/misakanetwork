@@ -19,4 +19,5 @@ fun Application.module() {
     configureSerialization()
     session()
     router()
+    install(Helmet)
 }

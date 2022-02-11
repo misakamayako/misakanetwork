@@ -2,9 +2,10 @@ package cn.com.misakanetwork.service.user
 
 import cn.com.misakanetwork.dao.UserDao
 import cn.com.misakanetwork.dto.LoginDTO
-import cn.com.misakanetwork.dto.Response
+import cn.com.misakanetwork.dto.ResponseDTO
 import cn.com.misakanetwork.dto.UserDto
 import cn.com.misakanetwork.plugins.*
+import cn.com.misakanetwork.service.Service
 import cn.com.misakanetwork.tools.PasswordEncryption.authenticate
 import cn.com.misakanetwork.tools.PasswordEncryption.generateSalt
 import cn.com.misakanetwork.tools.PasswordEncryption.getEncryptedPassword
@@ -13,14 +14,14 @@ import io.ktor.response.*
 import io.ktor.sessions.*
 import org.ktorm.dsl.*
 
-class UserService(private val call: ApplicationCall) {
+class UserService(call: ApplicationCall): Service(call) {
     suspend fun getMethod() {
         val userSession = call.sessions.get<UserSession>() ?: throw AuthenticationException()
         val result = database.from(UserDao).select().where {
             UserDao.sessionId eq userSession.sessionId
         }
         for (i in result) {
-            call.respond(Response(data = UserDto(i[UserDao.id], i[UserDao.name])))
+            super.response(UserDto(i[UserDao.id], i[UserDao.name]))
             return
         }
         throw AuthenticationException()
@@ -50,7 +51,7 @@ class UserService(private val call: ApplicationCall) {
                 }
             }
             call.sessions.set(UserSession(sessionId))
-            call.respond(Response(data = userDto))
+            call.respond(ResponseDTO(data = userDto))
         } else {
             throw AuthorizationException()
         }
@@ -68,7 +69,7 @@ class UserService(private val call: ApplicationCall) {
             set(UserDao.privateKey, newPrivateKey)
             set(UserDao.password, password)
         }
-        call.respond(Response(data = true))
+        super.response(true)
     }
 
 }
