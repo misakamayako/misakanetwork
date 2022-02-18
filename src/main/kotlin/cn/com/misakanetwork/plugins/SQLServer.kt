@@ -16,8 +16,9 @@ object InitSQL : ReadOnlyProperty<Nothing?, Database> {
     private const val url =
         "jdbc:mysql://localhost:3306/misakanetworks?" +
                 "useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC"
-    private val  SQLInstance: Database
+    private val SQLInstance: Database
     override fun getValue(thisRef: Nothing?, property: KProperty<*>) = SQLInstance
+
     init {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver")

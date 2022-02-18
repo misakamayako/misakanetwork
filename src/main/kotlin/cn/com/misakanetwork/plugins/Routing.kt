@@ -7,5 +7,4 @@ import io.ktor.locations.*
 fun Application.configureRouting() {
     install(AutoHeadResponse)
     install(Locations)
-
 }

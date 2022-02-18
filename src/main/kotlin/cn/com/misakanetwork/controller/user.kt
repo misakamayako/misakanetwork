@@ -8,13 +8,13 @@ import io.ktor.routing.*
 fun userController(app: Application) {
     app.routing {
         post<LoginDTO>("/login") {
-            UserService(call).post(it)
+            UserService(call).login(it)
         }
         put<LoginDTO>("/login") {
             UserService(call).put(it)
         }
         get("/user/info") {
-            UserService(call).getMethod()
+            UserService(call).getUserInfo()
         }
     }
 }

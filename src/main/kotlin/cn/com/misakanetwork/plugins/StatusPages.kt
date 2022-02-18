@@ -5,35 +5,38 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
-import java.util.*
 
 fun Application.statusPages() {
     install(StatusPages) {
         statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
-        exception<AuthenticationException> { cause ->
-            val accept = call.request.headers["accept"] ?: return@exception call.respond(HttpStatusCode.Unauthorized,
-                                                                                         cause.message ?: "")
-            if (accept.lowercase(Locale.getDefault()).contains("json")) {
-                call.respond(HttpStatusCode.Unauthorized, back(HttpStatusCode.Unauthorized, cause))
-            } else {
-                call.respond(HttpStatusCode.Unauthorized, cause.message ?: "")
-            }
-        }
-        exception<AuthorizationException> { cause ->
-            call.respond(HttpStatusCode.Forbidden)
-        }
-        exception<NotFoundException> { cause ->
-            call.respond(HttpStatusCode.NotFound)
-        }
+
         exception<Exception> { cause ->
-            call.respond(HttpStatusCode.InternalServerError)
+            ExceptionHandler(cause).response(call)
         }
     }
 }
 
-fun back(httpStatusCode: HttpStatusCode, error: Exception) =
-    ResponseDTO<String>(
-        status = httpStatusCode.value,
-        data = null,
-        message = error.message ?: httpStatusCode.description
-    )
+class ExceptionHandler(private val exception: Exception) {
+    private fun acceptJson(call: ApplicationCall): Boolean =
+        call.request.headers.getAll("Accept")?.find { it.contains("json") } != null
+
+    suspend fun response(call: ApplicationCall) {
+        val statusCode = when (exception) {
+            is AuthenticationException -> HttpStatusCode.Unauthorized
+            is AuthorizationException -> HttpStatusCode.Unauthorized
+            is NotFoundException -> HttpStatusCode.NotFound
+            is BadRequestException -> HttpStatusCode.BadRequest
+            else -> HttpStatusCode.InternalServerError
+        }
+        if (acceptJson(call)) {
+            val response = ResponseDTO<String>(
+                status = statusCode.value,
+                data = null,
+                message = exception.message.takeIf { it.isNullOrEmpty() } ?: statusCode.description
+            )
+            call.respond(statusCode, response)
+        } else {
+            call.respond(statusCode)
+        }
+    }
+}

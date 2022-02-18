@@ -3,16 +3,15 @@ package cn.com.misakanetwork.plugins
 import io.ktor.application.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import kotlin.reflect.full.memberFunctions
 
-open class Helmet {
-    private lateinit var headers: MutableMap<String, String>
+class Helmet {
+    private val headers = ArrayList<Pair<String, String>>()
 
     class Configuration {
-        internal val headers = mutableMapOf<String, String>()
+        internal val headers = HashMap<String, String>()
+        internal var applyDefault = true
 
         //        internal fun contentSecurityPolicy(options)
-        @JvmOverloads
         internal fun crossOriginEmbedderPolicy(enable: Boolean = true) {
             this.headers["Cross-Origin-Embedder-Policy"] = "require-corp".takeIf { enable } ?: "unsafe-none"
         }
@@ -49,6 +48,10 @@ open class Helmet {
             internal var maxAge = 0L
             internal var enforce = false
             internal var reportTo: String? = null
+        }
+
+        internal fun expectCt() {
+            expectCt {}
         }
 
         internal fun expectCt(configure: CTOption.() -> Unit) {
@@ -90,7 +93,9 @@ open class Helmet {
                 return policy.toString()
             }
         }
-
+        internal fun referrerPolicy(){
+            referrerPolicy{}
+        }
         internal fun referrerPolicy(configure: ReferrerPolicy.() -> Unit) {
             val option = ReferrerPolicy().apply(configure)
             this.headers["Referrer-Policy"] = option.getPolicy()
@@ -100,6 +105,10 @@ open class Helmet {
             var maxAge = 15552000L
             var includeSubDomains = true
             var preload = false
+        }
+
+        internal fun hsts() {
+            hsts {}
         }
 
         internal fun hsts(configure: HstsOption.() -> Unit) {
@@ -153,29 +162,47 @@ open class Helmet {
         internal fun xssFilter() {
             this.headers["X-XSS-Protection"] = "0"
         }
+
+        fun init(): Configuration {
+            if (this.applyDefault) {
+//                contentSecurityPolicy()
+                crossOriginEmbedderPolicy()
+                crossOriginOpenerPolicy()
+                crossOriginResourcePolicy()
+                expectCt()
+                referrerPolicy()
+                hsts()
+                noSniff()
+                originAgentCluster()
+                dnsPrefetchControl()
+                ieNoOpen()
+                frameguard()
+                permittedCrossDomainPolicies()
+                xssFilter()
+            }
+            return this
+        }
     }
 
     public companion object Feature : ApplicationFeature<Application, Configuration, Helmet> {
         override val key: AttributeKey<Helmet> = AttributeKey("Helmet")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Helmet {
+            val configuration = Configuration().init().apply(configure)
+            val helmet = Helmet().apply {
+                configuration.headers.forEach {
+                    headers.add(Pair(it.key, it.value))
+                }
+            }
             val pipelinePhase = PipelinePhase("wear helmet")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Features, pipelinePhase)
             pipeline.intercept(pipelinePhase) {
-                TODO("set headers")
-//                this.call.response.headers.append("test", "dfsdf")
+                helmet.headers.forEach {
+                    this.call.response.headers.append(it.first, it.second)
+                }
             }
-            val configuration = Configuration().apply(configure)
-            return Helmet().also { it.configure(configuration) }
+            return helmet
         }
     }
 
-    fun configure(configure: Configuration) {
-//        Intrinsics.checkParameterIsNotNull
-        if (configure.headers.isEmpty()) {
-            TODO("invoke all methods to add default header")
-            println(configure.headers.size)
-        }
-        this.headers = configure.headers
-    }
 }

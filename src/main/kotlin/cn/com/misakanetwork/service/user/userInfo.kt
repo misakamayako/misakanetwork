@@ -5,7 +5,6 @@ import cn.com.misakanetwork.dto.LoginDTO
 import cn.com.misakanetwork.dto.ResponseDTO
 import cn.com.misakanetwork.dto.UserDto
 import cn.com.misakanetwork.plugins.*
-import cn.com.misakanetwork.service.Service
 import cn.com.misakanetwork.tools.PasswordEncryption.authenticate
 import cn.com.misakanetwork.tools.PasswordEncryption.generateSalt
 import cn.com.misakanetwork.tools.PasswordEncryption.getEncryptedPassword
@@ -14,20 +13,21 @@ import io.ktor.response.*
 import io.ktor.sessions.*
 import org.ktorm.dsl.*
 
-class UserService(call: ApplicationCall): Service(call) {
-    suspend fun getMethod() {
+
+class UserService(private val call: ApplicationCall) {
+    suspend fun getUserInfo() {
         val userSession = call.sessions.get<UserSession>() ?: throw AuthenticationException()
         val result = database.from(UserDao).select().where {
             UserDao.sessionId eq userSession.sessionId
         }
         for (i in result) {
-            super.response(UserDto(i[UserDao.id], i[UserDao.name]))
+            call.respond(UserDto(i[UserDao.id], i[UserDao.name]))
             return
         }
         throw AuthenticationException()
     }
 
-    suspend fun post(loginDTO: LoginDTO) {
+    suspend fun login(loginDTO: LoginDTO) {
         val foundUser = database.from(UserDao).select().where { UserDao.name eq loginDTO.name }
         var userDto: UserDto? = null
         var passWord: String? = null
@@ -39,7 +39,7 @@ class UserService(call: ApplicationCall): Service(call) {
             break
         }
         if (userDto == null || passWord == null) {
-            throw AuthorizationException()
+            throw AuthorizationException("The username and/or password you specified are not correct.")
         }
         if (authenticate(loginDTO.password, passWord, privateKey ?: "")) {
             val newPrivateKey = generateSalt()
@@ -53,7 +53,7 @@ class UserService(call: ApplicationCall): Service(call) {
             call.sessions.set(UserSession(sessionId))
             call.respond(ResponseDTO(data = userDto))
         } else {
-            throw AuthorizationException()
+            throw AuthorizationException("The username and/or password you specified are not correct.")
         }
     }
 
@@ -69,7 +69,6 @@ class UserService(call: ApplicationCall): Service(call) {
             set(UserDao.privateKey, newPrivateKey)
             set(UserDao.password, password)
         }
-        super.response(true)
+        call.respond(ResponseDTO(data = "ok"))
     }
-
 }

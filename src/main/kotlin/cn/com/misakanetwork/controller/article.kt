@@ -38,5 +38,3 @@ fun articleController(app: Application) {
         }
     }
 }
-
-//data class NewArticle(val title: String, val content: String, val tags: Array<String>)

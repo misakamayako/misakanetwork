@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 
-class ArticleService(call: ApplicationCall) : Service(call) {
+class ArticleService(private val call: ApplicationCall) {
     private val logger: Logger = LoggerFactory.getLogger("cn.com.misakanetwork.service.ArticleService")
     suspend fun getBrief(page: Int) {
         this.javaClass.packageName
@@ -109,8 +109,8 @@ class ArticleService(call: ApplicationCall) : Service(call) {
         withTimeoutOrNull(5000) {
             listOf(ossJob, sqlJob).joinAll()
         }*/
-        this.response(HttpStatusCode.OK, "ok")
-//        call.respond(ResponseDTO(data="Ok"))
+//        call.response(HttpStatusCode.OK, "ok")
+        call.respond(ResponseDTO(data="Ok"))
     }
 }
 
