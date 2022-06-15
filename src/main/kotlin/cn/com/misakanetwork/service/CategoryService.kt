@@ -1,4 +1,4 @@
-package cn.com.misakanetwork.service.article
+package cn.com.misakanetwork.service
 
 import cn.com.misakanetwork.dao.ArticleCategoryDAO
 import cn.com.misakanetwork.dao.ArticleToCategoryDAO
@@ -10,6 +10,7 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.response.*
 import org.ktorm.dsl.*
+import java.sql.SQLIntegrityConstraintViolationException
 
 class CategoryService(private val call: ApplicationCall) {
     suspend fun getArticleSum() {
@@ -40,13 +41,19 @@ class CategoryService(private val call: ApplicationCall) {
         if (articleCategoryDTO.category == null) {
             throw BadRequestException("类型名称为必传项")
         }
-        val d = database.insert(ArticleCategoryDAO) {
-            set(ArticleCategoryDAO.description, articleCategoryDTO.category)
+        try{
+            database.insert(ArticleCategoryDAO) {
+                set(ArticleCategoryDAO.description, articleCategoryDTO.category)
+            }
+        } catch (E: SQLIntegrityConstraintViolationException){
+            throw BadRequestException("类型名称重复")
         }
-        println(d)
         val result = database
             .from(ArticleCategoryDAO)
-            .select(ArticleCategoryDAO.description eq articleCategoryDTO.category)
+            .select()
+            .where {
+                ArticleCategoryDAO.description eq articleCategoryDTO.category
+            }
             .map {
                 ArticleCategoryDTO(it[ArticleCategoryDAO.description], it[ArticleCategoryDAO.id])
             }

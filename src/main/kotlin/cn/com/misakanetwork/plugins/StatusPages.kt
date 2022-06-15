@@ -36,7 +36,7 @@ class ExceptionHandler(private val exception: Exception) {
             )
             call.respond(statusCode, response)
         } else {
-            call.respond(statusCode)
+            call.respond(statusCode,exception.message.takeIf { it.isNullOrEmpty() } ?: statusCode.description)
         }
     }
 }
