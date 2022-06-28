@@ -1,7 +1,7 @@
 package cn.com.misakanetwork.dto
 
 import cn.com.misakanetwork.tools.LocalDateSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import java.time.LocalDateTime
 
 interface IArticleDTO {

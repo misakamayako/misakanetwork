@@ -2,10 +2,8 @@ package cn.com.misakanetwork
 
 import cn.com.misakanetwork.plugins.*
 import cn.com.misakanetwork.route.router
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.util.pipeline.*
 
 
@@ -21,7 +19,9 @@ fun Application.module() {
     configureSerialization()
     session()
     router()
-    install(Helmet)
+    install(Helmet){
+        useDefault()
+    }
     val beforeFallback = PipelinePhase("")
     insertPhaseBefore(ApplicationCallPipeline.Fallback, beforeFallback)
     intercept(beforeFallback) {

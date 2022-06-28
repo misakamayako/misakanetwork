@@ -6,9 +6,9 @@ import cn.com.misakanetwork.dto.ArticleCategoryDTO
 import cn.com.misakanetwork.dto.CategorySumDTO
 import cn.com.misakanetwork.dto.ResponseDTO
 import cn.com.misakanetwork.plugins.database
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.response.*
 import org.ktorm.dsl.*
 import java.sql.SQLIntegrityConstraintViolationException
 
@@ -21,9 +21,13 @@ class CategoryService(private val call: ApplicationCall) {
             .groupBy(ArticleCategoryDAO.description)
         val result = ArrayList<CategorySumDTO>()
         for (q in query) {
-            result.add(CategorySumDTO(q[ArticleCategoryDAO.description],
-                                      q[ArticleCategoryDAO.id],
-                                      q[count().aliased("count")]))
+            result.add(
+                CategorySumDTO(
+                    q[ArticleCategoryDAO.description],
+                    q[ArticleCategoryDAO.id],
+                    q[count().aliased("count")]
+                )
+            )
         }
         call.respond(ResponseDTO(data = result))
     }
@@ -32,7 +36,7 @@ class CategoryService(private val call: ApplicationCall) {
         val query = database.from(ArticleCategoryDAO).select()
         val result = ArrayList<ArticleCategoryDTO>()
         for (row in query) {
-            result.add(ArticleCategoryDTO( row[ArticleCategoryDAO.description],row[ArticleCategoryDAO.id]))
+            result.add(ArticleCategoryDTO(row[ArticleCategoryDAO.description], row[ArticleCategoryDAO.id]))
         }
         call.respond(ResponseDTO(data = result))
     }
@@ -41,11 +45,11 @@ class CategoryService(private val call: ApplicationCall) {
         if (articleCategoryDTO.category == null) {
             throw BadRequestException("类型名称为必传项")
         }
-        try{
+        try {
             database.insert(ArticleCategoryDAO) {
                 set(ArticleCategoryDAO.description, articleCategoryDTO.category)
             }
-        } catch (E: SQLIntegrityConstraintViolationException){
+        } catch (E: SQLIntegrityConstraintViolationException) {
             throw BadRequestException("类型名称重复")
         }
         val result = database

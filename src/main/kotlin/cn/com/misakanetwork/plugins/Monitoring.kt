@@ -1,9 +1,10 @@
 package cn.com.misakanetwork.plugins
 
-import io.ktor.features.*
+import io.ktor.server.plugins.*
 import org.slf4j.event.*
-import io.ktor.application.*
-import io.ktor.request.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.callloging.*
+import io.ktor.server.request.*
 
 fun Application.configureMonitoring() {
     install(CallLogging) {

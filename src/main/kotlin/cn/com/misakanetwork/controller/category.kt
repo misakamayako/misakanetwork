@@ -2,10 +2,10 @@ package cn.com.misakanetwork.controller
 
 import cn.com.misakanetwork.dto.ArticleCategoryDTO
 import cn.com.misakanetwork.service.CategoryService
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.request.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
 
 fun categoryController(app: Application) {
     app.routing {

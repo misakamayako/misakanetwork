@@ -5,10 +5,10 @@ import cn.com.misakanetwork.service.img.getImgTags
 import cn.com.misakanetwork.service.img.imgUploader
 import cn.com.misakanetwork.service.img.renderHTMLGroupByTagId
 import cn.com.misakanetwork.service.img.renderImgHtml
-import io.ktor.application.*
-import io.ktor.html.*
-import io.ktor.locations.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.html.*
+import io.ktor.server.locations.*
+import io.ktor.server.routing.*
 
 fun imgController(app: Application) {
     app.routing {
@@ -20,8 +20,8 @@ fun imgController(app: Application) {
         }
         get<ImgReader.HTMLGroupByTagId> {
             val contentPage = renderHTMLGroupByTagId(it)
-            call.respondHtmlTemplate(Layout(contentPage)){
-                title{
+            call.respondHtmlTemplate(Layout(contentPage)) {
+                title {
                     +"content."
                 }
                 content
@@ -30,7 +30,7 @@ fun imgController(app: Application) {
         get<ImgReader.HTMLSpecificImg> {
             val contentPage = renderImgHtml(it.id)
             call.respondHtmlTemplate(Layout(contentPage)) {
-                title{
+                title {
                     +("查看图片  " + (contentPage.title ?: ""))
                 }
                 content {
@@ -42,9 +42,9 @@ fun imgController(app: Application) {
             call.respondHtml { getImgTags(it.keyWord) }
         }
 //        authenticate("auth-jwt") {
-            get<ImgReader.HTMLImgUpload> {
-                call.respondHtml { imgUploader() }
-            }
+        get<ImgReader.HTMLImgUpload> {
+            call.respondHtml { imgUploader() }
+        }
 //        }
     }
 }

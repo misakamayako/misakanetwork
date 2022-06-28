@@ -2,8 +2,8 @@ package cn.com.misakanetwork.controller
 
 import cn.com.misakanetwork.dto.LoginDTO
 import cn.com.misakanetwork.service.user.UserService
-import io.ktor.application.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
 
 fun userController(app: Application) {
     app.routing {

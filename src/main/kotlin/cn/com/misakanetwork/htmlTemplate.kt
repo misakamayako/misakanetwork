@@ -1,7 +1,7 @@
 package cn.com.misakanetwork
 
 import cn.com.misakanetwork.dto.ImgTagDTO
-import io.ktor.html.*
+import io.ktor.server.html.*
 import kotlinx.html.*
 
 class Layout<T : Template<FlowContent>>(private val template: T) : Template<HTML> {
@@ -15,8 +15,10 @@ class Layout<T : Template<FlowContent>>(private val template: T) : Template<HTML
         head {
             title
             meta(charset = "UTF-8")
-            meta(name = "viewport",
-                content = "width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no")
+            meta(
+                name = "viewport",
+                content = "width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no"
+            )
             insert(keywords)
             insert(description)
             link(href = "https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css", rel = "stylesheet")
@@ -28,7 +30,8 @@ class Layout<T : Template<FlowContent>>(private val template: T) : Template<HTML
     }
 }
 
-class ImgFiles(private val source: String, private val tags: List<ImgTags>,val title:String?) : Template<FlowContent> {
+class ImgFiles(private val source: String, private val tags: List<ImgTags>, val title: String?) :
+    Template<FlowContent> {
     val mainImage = TemplatePlaceholder<MainImage>()
     val tagBlock = TemplatePlaceholder<ImgTags>()
     override fun FlowContent.apply() {
@@ -67,27 +70,29 @@ class MainImage(val source: String) : Template<FlowContent> {
 class ImgTags(val tagInfo: ImgTagDTO) : Template<FlowContent> {
     override fun FlowContent.apply() {
         a {
-            href  = "/img/tags/?"
-            classes = setOf("border",
+            href = "/img/tags/?"
+            classes = setOf(
+                "border",
                 "border-lime-500",
                 "rounded-lg",
                 "inline",
                 "px-2",
                 "hover:border-lime-300",
-                "cursor-pointer")
+                "cursor-pointer"
+            )
             +tagInfo.text
         }
     }
 }
 
 
-class HTMLGroupByTagId:Template<FlowContent>{
+class HTMLGroupByTagId : Template<FlowContent> {
     override fun FlowContent.apply() {
         TODO("Not yet implemented")
     }
 }
 
-class HTMLImgUpload:Template<FlowContent>{
+class HTMLImgUpload : Template<FlowContent> {
     override fun FlowContent.apply() {
         TODO("Not yet implemented")
     }

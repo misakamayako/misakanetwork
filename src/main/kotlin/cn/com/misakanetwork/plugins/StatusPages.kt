@@ -1,17 +1,18 @@
 package cn.com.misakanetwork.plugins
 
 import cn.com.misakanetwork.dto.ResponseDTO
-import io.ktor.application.*
-import io.ktor.features.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
 
 fun Application.statusPages() {
     install(StatusPages) {
         statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
 
-        exception<Exception> { cause ->
-            ExceptionHandler(cause).response(call)
+        exception<Exception>{ call: ApplicationCall, exception: Exception ->
+            ExceptionHandler(exception).response(call)
         }
     }
 }
@@ -36,7 +37,7 @@ class ExceptionHandler(private val exception: Exception) {
             )
             call.respond(statusCode, response)
         } else {
-            call.respond(statusCode,exception.message.takeIf { it.isNullOrEmpty() } ?: statusCode.description)
+            call.respond(statusCode, exception.message.takeIf { it.isNullOrEmpty() } ?: statusCode.description)
         }
     }
 }

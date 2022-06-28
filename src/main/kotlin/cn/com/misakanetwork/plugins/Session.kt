@@ -1,7 +1,7 @@
 package cn.com.misakanetwork.plugins
 
-import io.ktor.application.*
-import io.ktor.sessions.*
+import io.ktor.server.application.*
+import io.ktor.server.sessions.*
 
 fun Application.session() {
     install(Sessions) {

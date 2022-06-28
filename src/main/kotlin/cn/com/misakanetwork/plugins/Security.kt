@@ -1,10 +1,10 @@
 package cn.com.misakanetwork.plugins
 
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.application.*
+import io.ktor.server.application.*
 
 
 fun Application.configureSecurity() {
@@ -12,10 +12,12 @@ fun Application.configureSecurity() {
     val issuer = environment.config.property("jwt.issuer").getString()
     install(Authentication) {
         jwt("auth-jwt") {
-            verifier(JWT
-                .require(Algorithm.HMAC256(secret))
-                .withIssuer(issuer)
-                .build())
+            verifier(
+                JWT
+                    .require(Algorithm.HMAC256(secret))
+                    .withIssuer(issuer)
+                    .build()
+            )
             validate { credential ->
                 if (credential.payload.getClaim("username").asString() == "misaka") {
                     JWTPrincipal(credential.payload)

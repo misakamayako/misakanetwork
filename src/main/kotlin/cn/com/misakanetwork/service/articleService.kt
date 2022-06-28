@@ -9,11 +9,12 @@ import cn.com.misakanetwork.dto.ResponseDTO
 import cn.com.misakanetwork.enum.OSSInfo
 import cn.com.misakanetwork.plugins.OSSInstance
 import cn.com.misakanetwork.plugins.database
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.*
+import io.ktor.server.http.content.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -30,13 +31,15 @@ class ArticleService(private val call: ApplicationCall) {
         var total = 0
         database.useTransaction { transaction ->
             database.from(ArticleDAO).select().limit(10).offset((page - 1) * 10).map {
-                result.add(ArticleDTO(
-                    id = it[ArticleDAO.id],
-                    title = it[ArticleDAO.title],
-                    brief = it[ArticleDAO.brief],
-                    createAt = it[ArticleDAO.createAt],
-                    views = it[ArticleDAO.views]
-                ))
+                result.add(
+                    ArticleDTO(
+                        id = it[ArticleDAO.id],
+                        title = it[ArticleDAO.title],
+                        brief = it[ArticleDAO.brief],
+                        createAt = it[ArticleDAO.createAt],
+                        views = it[ArticleDAO.views]
+                    )
+                )
             }
             database.useConnection { connection ->
                 connection.prepareStatement("SELECT FOUND_ROWS() as total;").use { statement ->
@@ -130,12 +133,14 @@ class ArticleService(private val call: ApplicationCall) {
 
     suspend fun getArticle(id: Int) {
         val res = database.from(ArticleDAO).select().where { ArticleDAO.id eq id }.map {
-            ArticleDetailDTO(it[ArticleDAO.id],
-                             it[ArticleDAO.title],
-                             it[ArticleDAO.brief],
-                             it[ArticleDAO.createAt],
-                             it[ArticleDAO.views],
-                             null)
+            ArticleDetailDTO(
+                it[ArticleDAO.id],
+                it[ArticleDAO.title],
+                it[ArticleDAO.brief],
+                it[ArticleDAO.createAt],
+                it[ArticleDAO.views],
+                null
+            )
         }
         if (res.isEmpty()) {
             throw NotFoundException()

@@ -3,11 +3,10 @@ package cn.com.misakanetwork.route
 import cn.com.misakanetwork.dao.Auth
 import cn.com.misakanetwork.plugins.database
 import cn.com.misakanetwork.tools.PasswordEncryption
-import io.ktor.application.*
+import io.ktor.server.application.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.ktorm.dsl.*
-
 
 
 fun Application.user() {
@@ -18,7 +17,7 @@ fun Application.user() {
             database.insert(Auth) {
                 set(it.id, 0)
                 set(it.userName, "misaka")
-                set(it.password, PasswordEncryption.getEncryptedPassword("125125YZd","password"))
+                set(it.password, PasswordEncryption.getEncryptedPassword("125125YZd", "password"))
             }
         }
     }

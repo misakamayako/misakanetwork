@@ -1,9 +1,9 @@
 package cn.com.misakanetwork.controller
 
 import cn.com.misakanetwork.service.ArticleService
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 fun articleController(app: Application) {
     app.routing {
@@ -11,12 +11,12 @@ fun articleController(app: Application) {
             get("/list") {
                 ArticleService(call).getArticleList(call.request.queryParameters["page"]?.toInt() ?: 1)
             }
-            post("/upload"){
+            post("/upload") {
                 ArticleService(call).upload()
             }
-            get("{id}"){
+            get("{id}") {
                 val id = call.parameters["id"]?.toIntOrNull()
-                if(id==null){
+                if (id == null) {
                     call.respondRedirect("/article/list")
                 } else {
                     ArticleService(call).getArticle(id)

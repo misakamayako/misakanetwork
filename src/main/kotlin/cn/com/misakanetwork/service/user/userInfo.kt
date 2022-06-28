@@ -8,9 +8,9 @@ import cn.com.misakanetwork.plugins.*
 import cn.com.misakanetwork.tools.PasswordEncryption.authenticate
 import cn.com.misakanetwork.tools.PasswordEncryption.generateSalt
 import cn.com.misakanetwork.tools.PasswordEncryption.getEncryptedPassword
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.sessions.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.sessions.*
 import org.ktorm.dsl.*
 
 
