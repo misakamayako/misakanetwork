@@ -11,7 +11,7 @@ fun Application.statusPages() {
     install(StatusPages) {
         statusFile(HttpStatusCode.NotFound, HttpStatusCode.Unauthorized, filePattern = "error#.html")
 
-        exception<Exception>{ call: ApplicationCall, exception: Exception ->
+        exception<Exception> { call: ApplicationCall, exception: Exception ->
             ExceptionHandler(exception).response(call)
         }
     }
@@ -33,7 +33,7 @@ class ExceptionHandler(private val exception: Exception) {
             val response = ResponseDTO<String>(
                 status = statusCode.value,
                 data = null,
-                message = exception.message.takeIf { it.isNullOrEmpty() } ?: statusCode.description
+                message = exception.message.takeIf { it != null && it.isNotEmpty() } ?: statusCode.description
             )
             call.respond(statusCode, response)
         } else {

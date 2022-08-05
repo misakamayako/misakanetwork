@@ -11,7 +11,7 @@ val OSSInstance by AliOSS
 object AliOSS {
     private const val endpoint = "https://oss-cn-shanghai.aliyuncs.com"
 
-    @JvmField
+    @JvmStatic
     val accessKeyId = AesEncrypto.decrypt("oyKdtKxzvaouj+AX+WgdjpQ7fri0jkSdmHHEuNprjPE=")
 
     @JvmField

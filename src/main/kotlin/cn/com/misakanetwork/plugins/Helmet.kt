@@ -34,6 +34,17 @@ enum class ReferrerPolicyOption(val value: String) {
     unsafeUrl("unsafe-url"),
 }
 
+enum class FrameOptions(val value: String) {
+    DENY("deny"),
+    SAMEORIGIN("same-origin")
+}
+
+enum class PCDP(val value: String) {
+    NONE("none"),
+    MASTERONLY("master-only"),
+    BYCONTENTTYPE("by-content-type"),
+    ALL("all")
+}
 class PluginConfiguration {
 
     internal val headers = HashMap<String, String>()
@@ -145,21 +156,11 @@ class PluginConfiguration {
         this.headers["X-Download-Options"] = "noopen"
     }
 
-    enum class FrameOptions(val value: String) {
-        DENY("deny"),
-        SAMEORIGIN("same-origin")
-    }
 
     internal fun frameguard(option: FrameOptions = FrameOptions.DENY) {
         this.headers["X-Frame-Options"] = option.value
     }
 
-    enum class PCDP(val value: String) {
-        NONE("none"),
-        MASTERONLY("master-only"),
-        BYCONTENTTYPE("by-content-type"),
-        ALL("all")
-    }
 
     internal fun permittedCrossDomainPolicies(option: PCDP = PCDP.NONE) {
         this.headers["X-Permitted-Cross-Domain-Policies"] = option.value
