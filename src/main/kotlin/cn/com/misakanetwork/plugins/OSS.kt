@@ -17,7 +17,14 @@ object AliOSS {
     @JvmField
     val accessKeySecret = AesEncrypto.decrypt("8lbiKCMuPMg1r66Ny/7Ie1S71nZh3U4CiyIbJliW+GM=")
 
-    private val ossClient: OSS = OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret)
+    @get:Synchronized
+    private var ossClient: OSS? = null
+        get() {
+            if (field == null) {
+                field = OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret)
+            }
+            return field
+        }
 
-    operator fun getValue(nothing: Nothing?, property: KProperty<*>) = ossClient
+    operator fun getValue(nothing: Nothing?, property: KProperty<*>): OSS = ossClient!!
 }

@@ -34,3 +34,9 @@ data class ArticleDetailDTO(
     override val views: Int?,
     var content: String?,
 ) : IArticleDTO
+
+@Serializable
+data class ArticleAllDTO(
+    val id: Int?,
+    val title: String?,
+)

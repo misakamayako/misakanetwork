@@ -39,7 +39,7 @@ class UserService(private val call: ApplicationCall) {
             break
         }
         if (userDto == null || passWord == null) {
-            throw AuthorizationException("The username and/or password you specified are not correct.")
+            throw AuthorizationException("The username and/or password you specified are/is not correct.")
         }
         if (authenticate(loginDTO.password, passWord, privateKey ?: "")) {
             val newPrivateKey = generateSalt()
@@ -53,7 +53,7 @@ class UserService(private val call: ApplicationCall) {
             call.sessions.set(UserSession(sessionId))
             call.respond(ResponseDTO(data = userDto))
         } else {
-            throw AuthorizationException("The username and/or password you specified are not correct.")
+            throw AuthorizationException("The username and/or password you specified are/is not correct.")
         }
     }
 

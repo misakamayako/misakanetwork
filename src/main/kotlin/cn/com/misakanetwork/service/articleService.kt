@@ -2,17 +2,13 @@ package cn.com.misakanetwork.service
 
 import cn.com.misakanetwork.dao.ArticleDAO
 import cn.com.misakanetwork.dao.ArticleToCategoryDAO
-import cn.com.misakanetwork.dto.ArticleDTO
-import cn.com.misakanetwork.dto.ArticleDetailDTO
-import cn.com.misakanetwork.dto.PaginationDTO
-import cn.com.misakanetwork.dto.ResponseDTO
+import cn.com.misakanetwork.dto.*
 import cn.com.misakanetwork.enum.OSSInfo
 import cn.com.misakanetwork.plugins.OSSInstance
 import cn.com.misakanetwork.plugins.database
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
-import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -69,12 +65,14 @@ class ArticleService(private val call: ApplicationCall) {
                         "img" -> imgList.add(it.streamProvider().readBytes())
                     }
                 }
+
                 is PartData.FormItem -> {
                     when (it.name) {
                         "title" -> title = it.value
                         "categories" -> categories = it.value.split(",")
                     }
                 }
+
                 else -> {}
             }
         }
@@ -149,5 +147,12 @@ class ArticleService(private val call: ApplicationCall) {
         val ossObject = OSSInstance.getObject(OSSInfo.MARKDOWN.bucket, item.title)
         item.content = String(ossObject.objectContent.readBytes())
         call.respond(ResponseDTO(data = item))
+    }
+
+    suspend fun getAllArticle() {
+        val res = database.from(ArticleDAO).select(ArticleDAO.id, ArticleDAO.title).map {
+            ArticleAllDTO(it[ArticleDAO.id], it[ArticleDAO.title])
+        }
+        call.respond(ResponseDTO(data = res))
     }
 }
