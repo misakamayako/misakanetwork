@@ -17,7 +17,7 @@ fun Application.module() {
     configureHTTP()
     configureMonitoring()
     configureSerialization()
-    session()
+//    session()
     router()
     install(Helmet){
         useDefault()

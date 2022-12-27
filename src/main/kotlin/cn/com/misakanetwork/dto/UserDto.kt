@@ -1,6 +1,5 @@
 package cn.com.misakanetwork.dto
 
-import cn.com.misakanetwork.plugins.AuthenticationException
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -10,24 +10,21 @@ import cn.com.misakanetwork.tools.PasswordEncryption.generateSalt
 import cn.com.misakanetwork.tools.PasswordEncryption.getEncryptedPassword
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.server.sessions.*
 import org.ktorm.dsl.*
 
 
-class UserService(private val call: ApplicationCall) {
-    suspend fun getUserInfo() {
-        val userSession = call.sessions.get<UserSession>() ?: throw AuthenticationException()
+class UserService {
+    fun getUserInfo(userSession:String): UserDto {
         val result = database.from(UserDao).select().where {
-            UserDao.sessionId eq userSession.sessionId
+            UserDao.sessionId eq userSession
         }
         for (i in result) {
-            call.respond(UserDto(i[UserDao.id], i[UserDao.name]))
-            return
+            return UserDto(i[UserDao.id], i[UserDao.name])
         }
         throw AuthenticationException()
     }
 
-    suspend fun login(loginDTO: LoginDTO) {
+    fun login(loginDTO: LoginDTO): String {
         val foundUser = database.from(UserDao).select().where { UserDao.name eq loginDTO.name }
         var userDto: UserDto? = null
         var passWord: String? = null
@@ -39,7 +36,7 @@ class UserService(private val call: ApplicationCall) {
             break
         }
         if (userDto == null || passWord == null) {
-            throw AuthorizationException("The username and/or password you specified are/is not correct.")
+            throw AuthorizationException( "The username and/or password you specified are/is not correct.")
         }
         if (authenticate(loginDTO.password, passWord, privateKey ?: "")) {
             val newPrivateKey = generateSalt()
@@ -50,14 +47,13 @@ class UserService(private val call: ApplicationCall) {
                     it.id eq userDto.id!!
                 }
             }
-            call.sessions.set(UserSession(sessionId))
-            call.respond(ResponseDTO(data = userDto))
+            return sessionId
         } else {
             throw AuthorizationException("The username and/or password you specified are/is not correct.")
         }
     }
 
-    suspend fun put(loginDTO: LoginDTO) {
+    fun put(loginDTO: LoginDTO): String {
         val count = database.from(UserDao).select(UserDao.name).where { UserDao.name eq loginDTO.name }.totalRecords
         if (count != 0) {
             throw NotAcceptableException("该用户已注册")
@@ -69,6 +65,6 @@ class UserService(private val call: ApplicationCall) {
             set(UserDao.privateKey, newPrivateKey)
             set(UserDao.password, password)
         }
-        call.respond(ResponseDTO(data = "ok"))
+        return "ok"
     }
 }

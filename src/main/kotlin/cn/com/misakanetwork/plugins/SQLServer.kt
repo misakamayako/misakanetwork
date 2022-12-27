@@ -7,6 +7,7 @@ import org.ktorm.expression.SqlFormatter
 import org.ktorm.support.mysql.MySqlDialect
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
+import kotlin.system.exitProcess
 
 val database: Database by InitSQL
 
@@ -24,6 +25,7 @@ object InitSQL : ReadOnlyProperty<Nothing?, Database> {
             Class.forName("com.mysql.cj.jdbc.Driver")
         } catch (e: ClassNotFoundException) {
             e.printStackTrace()
+            exitProcess(-1)
         }
         val dataSource = DruidDataSource()
         dataSource.url = url

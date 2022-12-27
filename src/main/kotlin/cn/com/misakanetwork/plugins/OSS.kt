@@ -9,7 +9,7 @@ import kotlin.reflect.KProperty
 val OSSInstance by AliOSS
 
 object AliOSS {
-    private const val endpoint = "https://oss-cn-shanghai.aliyuncs.com"
+    const val endpoint = "oss-cn-shanghai.aliyuncs.com"
 
     @JvmStatic
     val accessKeyId = AesEncrypto.decrypt("oyKdtKxzvaouj+AX+WgdjpQ7fri0jkSdmHHEuNprjPE=")
@@ -21,7 +21,7 @@ object AliOSS {
     private var ossClient: OSS? = null
         get() {
             if (field == null) {
-                field = OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret)
+                field = OSSClientBuilder().build("https://$endpoint", accessKeyId, accessKeySecret)
             }
             return field
         }

@@ -7,6 +7,6 @@ enum class OSSInfo(val bucket:String) {
     PICTURE("misaka-networks-picture"),
     //文章markdown存储
     MARKDOWN("misaka-networks-article"),
-    //照片
-    PHOTO("")
+    //公开图片，例如markdown中的资源
+    OpenSource("misaka-networks-open-source")
 }

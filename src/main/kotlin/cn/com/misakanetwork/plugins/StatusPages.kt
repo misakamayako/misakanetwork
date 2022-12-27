@@ -33,7 +33,7 @@ class ExceptionHandler(private val exception: Exception) {
             val response = ResponseDTO<String>(
                 status = statusCode.value,
                 data = null,
-                message = exception.message.takeIf { it != null && it.isNotEmpty() } ?: statusCode.description
+                message = exception.message.takeIf { !it.isNullOrEmpty() } ?: statusCode.description
             )
             call.respond(statusCode, response)
         } else {

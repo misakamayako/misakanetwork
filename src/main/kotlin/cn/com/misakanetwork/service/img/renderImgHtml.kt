@@ -1,12 +1,7 @@
 package cn.com.misakanetwork.service.img
 
-import cn.com.misakanetwork.ImgFiles
-import cn.com.misakanetwork.ImgTags
-import cn.com.misakanetwork.dto.ImgTagDTO
 import cn.com.misakanetwork.plugins.database
-import io.ktor.server.plugins.*
 import org.ktorm.database.asIterable
-import java.util.*
 
 private data class ImgAndDetail(
     val ImgId: Int,
@@ -43,16 +38,5 @@ private fun specificImg(id: Int): List<ImgAndDetail> {
             }
         }
     }
-}
-
-fun renderImgHtml(id: Int): ImgFiles {
-    val imgInfo = specificImg(id).getOrNull(0) ?: throw NotFoundException()
-    val imgTagDTOs = LinkedList<ImgTags>()
-    val tags = imgInfo.tagText.split(',')
-    val ids = imgInfo.TagId.split(',')
-    for (i in tags.indices) {
-        imgTagDTOs.add(ImgTags(ImgTagDTO(ids[i].toInt(), tags[i])))
-    }
-    return ImgFiles(imgInfo.location, imgTagDTOs, imgInfo.name)
 }
 
