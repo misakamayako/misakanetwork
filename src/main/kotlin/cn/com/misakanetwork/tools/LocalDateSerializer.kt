@@ -11,12 +11,12 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = LocalDateTime::class)
 object LocalDateSerializer : KSerializer<LocalDateTime> {
-    private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    override fun serialize(encoder: Encoder, value: LocalDateTime) {
-        encoder.encodeString(value.format(formatter))
-    }
+	private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+	override fun serialize(encoder: Encoder, value: LocalDateTime) {
+		encoder.encodeString(value.format(formatter))
+	}
 
-    override fun deserialize(decoder: Decoder): LocalDateTime {
-        return LocalDateTime.parse(decoder.decodeString(), formatter)
-    }
+	override fun deserialize(decoder: Decoder): LocalDateTime {
+		return LocalDateTime.parse(decoder.decodeString(), formatter)
+	}
 }

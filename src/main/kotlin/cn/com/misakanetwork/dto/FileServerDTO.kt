@@ -7,11 +7,11 @@ import java.time.LocalDateTime
 
 @Serializable
 data class FileMappingDTO(
-    val id: Int,
-    val eigenvalues: String,
-    val realName: String?,
-    @Serializable(with = LocalDateSerializer::class)
-    val createAt: LocalDateTime,
-    @Transient
-    val deleteFlag: Boolean = true,
+	val id: Int,
+	val eigenvalues: String,
+	val realName: String?,
+	@Serializable(with = LocalDateSerializer::class)
+	val createAt: LocalDateTime,
+	@Transient
+	val deleteFlag: Boolean = true,
 )

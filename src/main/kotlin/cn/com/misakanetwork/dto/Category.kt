@@ -6,4 +6,4 @@ import kotlinx.serialization.Serializable
 data class CategorySumDTO(val category: String?, val id: Int?, val count: Int?)
 
 @Serializable
-data class ArticleCategoryDTO(val category: String? = null, val id: Int? = null)
+data class CategoryDTO(val category: String? = null, val id: Int? = null)

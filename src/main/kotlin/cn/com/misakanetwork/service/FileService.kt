@@ -4,38 +4,28 @@ import cn.com.misakanetwork.dto.FileMappingDTO
 import cn.com.misakanetwork.enum.OSSInfo
 import cn.com.misakanetwork.plugins.AliOSS
 import cn.com.misakanetwork.plugins.OSSInstance
+import cn.com.misakanetwork.tools.calculateEigenvalues
 import cn.com.misakanetwork.vo.FileServerVO
 import com.aliyun.oss.ClientException
 import com.aliyun.oss.OSSException
 import java.io.ByteArrayInputStream
-import java.security.MessageDigest
 
 class FileService : FileServerVO {
-    override fun calculateEigenvalues(fileBytes: ByteArray): String {
-        val messageDigest = MessageDigest.getInstance("sha-256")
-        messageDigest.update(fileBytes)
-        val digest = messageDigest.digest()
-        val result = StringBuilder()
-        digest.forEach {
-            result.append(Integer.toHexString(it.toInt() and 0xFF))
-        }
-        return String(result)
-    }
 
-    @Throws(OSSException::class, ClientException::class, Exception::class)
-    override suspend fun fileUpload(fileBytes: ByteArray, tail: String?): String {
-        val eigen = calculateEigenvalues(fileBytes) + if (tail != null) ".$tail" else ""
-        OSSInstance.putObject(
-            OSSInfo.OpenSource.bucket,
-            eigen,
-            ByteArrayInputStream(fileBytes)
-        )
-        return "https://${OSSInfo.OpenSource.bucket}.${AliOSS.endpoint}/$eigen"
-    }
+	@Throws(OSSException::class, ClientException::class, Exception::class)
+	override suspend fun fileUpload(fileBytes: ByteArray, tail: String?): String {
+		val eigen = calculateEigenvalues(fileBytes) + if (tail != null) ".$tail" else ""
+		OSSInstance.putObject(
+			OSSInfo.OpenSource.bucket,
+			eigen,
+			ByteArrayInputStream(fileBytes)
+		)
+		return "https://${OSSInfo.OpenSource.bucket}.${AliOSS.endpoint}/$eigen"
+	}
 
-    override suspend fun fileUploadSecurity(fileBytes: ByteArray): FileMappingDTO {
-        TODO("Not yet implemented")
-    }
+	override suspend fun fileUploadSecurity(fileBytes: ByteArray): FileMappingDTO {
+		TODO("Not yet implemented")
+	}
 
 
 //    override suspend fun fileUpload(belong: OSSInfo, fileBytes: ByteArray, realName: String?): FileMappingDTO? {
