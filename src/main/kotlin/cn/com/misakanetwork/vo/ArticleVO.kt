@@ -12,7 +12,7 @@ interface ArticleVO {
 	fun getDefaultQuery(): Query
 	fun getByCategory(): Query
 	fun getResult(query: Query): List<ArticleDTO>
-	suspend fun getArticleList(page: Int,pageSize:Int, category: Int?): PaginationDTO<List<ArticleDTO>>
+	suspend fun getArticleList(page: Int, pageSize: Int, category: Int?): PaginationDTO<List<ArticleDTO>>
 	suspend fun uploadArticle(articleUploadVO: ArticleUploadVO): ArticleDTO
 	suspend fun getArticle(id: Int): ArticleDetailDTO
 	suspend fun getAllArticleList(): List<ArticleAllDTO>

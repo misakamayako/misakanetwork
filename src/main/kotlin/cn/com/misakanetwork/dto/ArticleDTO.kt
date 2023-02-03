@@ -28,14 +28,14 @@ data class ArticleDTO(
 
 @Serializable
 data class ArticleDetailDTO(
-    override val id: Int?,
-    override val title: String?,
-    override val brief: String?,
-    @Serializable(with = LocalDateSerializer::class)
+	override val id: Int?,
+	override val title: String?,
+	override val brief: String?,
+	@Serializable(with = LocalDateSerializer::class)
 	override val createAt: LocalDateTime?,
-    override val views: Int?,
-    override val categories: List<CategoryDTO>?,
-    var content: String?,
+	override val views: Int?,
+	override val categories: List<CategoryDTO>?,
+	var content: String?,
 ) : IArticleDTO
 
 @Serializable

@@ -40,7 +40,9 @@ class GroupConcatFormatter(database: Database, beautifySql: Boolean, indentSize:
 		}
 	}
 }
+
 fun groupConcat(columns: List<ColumnDeclaring<*>>, separator: String = ","): GroupConcatExpression =
 	GroupConcatExpression(columns, separator)
+
 fun groupConcat(column: ColumnDeclaring<*>, separator: String = ","): GroupConcatExpression =
 	GroupConcatExpression(listOf(column), separator)

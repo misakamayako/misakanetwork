@@ -10,6 +10,7 @@ interface Category : Entity<Category> {
 	val description: String
 	val type: Int
 }
+
 object CategoryDAO : Table<Category>("category") {
 	val id = int("id").primaryKey().bindTo { it.id }
 	val type = int("type").bindTo { it.type }

@@ -150,7 +150,7 @@ class PluginConfiguration {
 	}
 
 	internal fun dnsPrefetchControl(allow: Boolean = false) {
-		this.headers["X-DNS-Prefetch-Control"] = if(allow) "on" else "off"
+		this.headers["X-DNS-Prefetch-Control"] = if (allow) "on" else "off"
 	}
 
 	internal fun ieNoOpen() {
