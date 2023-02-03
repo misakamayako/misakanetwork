@@ -39,8 +39,9 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
     implementation("com.vladsch.flexmark:flexmark-all:0.62.2")
     implementation("org.junit.jupiter:junit-jupiter:5.8.2")
+	implementation("redis.clients:jedis:4.3.1")
 
-    implementation("com.aliyun.oss:aliyun-sdk-oss:3.13.2")
+	implementation("com.aliyun.oss:aliyun-sdk-oss:3.13.2")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
     implementation("javax.activation:activation:1.1.1")
     implementation("org.glassfish.jaxb:jaxb-runtime:2.3.3")
@@ -61,6 +62,7 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+	implementation("io.ktor:ktor-server-forwarded-header:$ktor_version")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation(kotlin("script-runtime"))

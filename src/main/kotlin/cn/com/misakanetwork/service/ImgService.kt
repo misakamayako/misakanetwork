@@ -37,7 +37,7 @@ class ImgService : ImageServiceVo {
 		TODO("Not yet implemented")
 	}
 
-	override suspend fun getAlbumList(page: Int?, pageSize: Int?): PaginationDTO<List<AlbumDTO>> {
+	override suspend fun getAlbumList(albumQueryDTO: AlbumQueryDTO): PaginationDTO<List<AlbumDTO>> {
 		TODO("Not yet implemented")
 	}
 

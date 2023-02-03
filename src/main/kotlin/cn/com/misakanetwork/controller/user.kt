@@ -5,7 +5,7 @@ import cn.com.misakanetwork.dto.ResponseDTO
 import cn.com.misakanetwork.plugins.getToken
 import cn.com.misakanetwork.plugins.requireLogin
 import cn.com.misakanetwork.plugins.setToken
-import cn.com.misakanetwork.service.user.UserService
+import cn.com.misakanetwork.service.UserService
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*

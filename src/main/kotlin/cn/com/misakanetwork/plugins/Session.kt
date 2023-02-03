@@ -3,12 +3,20 @@ package cn.com.misakanetwork.plugins
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
+import java.util.*
 
-suspend fun <TSubject : Any> PipelineContext<TSubject, ApplicationCall>.requireLogin(function: suspend () -> TSubject): TSubject {
+suspend fun <TSubject : Any> PipelineContext<TSubject, ApplicationCall>.requireLogin(
+	function: suspend () -> TSubject
+): TSubject {
 	val cookie = context.request.cookies["csrfToken"]
 	if (cookie is String) {
-		// TODO 添加身份认证与redis
-		return function()
+		val resource = redisPool.resource
+		if (resource[cookie] != "") {
+			resource.close()
+			return function()
+		} else {
+			throw AuthorizationException("用户未授权")
+		}
 	} else {
 		throw AuthorizationException("用户未授权")
 	}
@@ -16,16 +24,18 @@ suspend fun <TSubject : Any> PipelineContext<TSubject, ApplicationCall>.requireL
 
 fun setToken(call: ApplicationCall, token: String) {
 	val cookie = Cookie(
-		name = "csrfToken",
+		name = "__Secure-csrfToken",
 		value = token,
 		maxAge = 7 * 24 * 3600,
 		httpOnly = true,
-		secure = false,
+		secure = true,
 		path = "/lastOrder"
 	)
+	val resource = redisPool.resource
+	resource.setex(token, 7 * 24 * 3600L, Date().toString())
 	call.response.cookies.append(cookie)
 }
 
 fun getToken(call: ApplicationCall): String? {
-	return call.request.cookies["csrfToken"]
+	return call.request.cookies["__Secure-csrfToken"]
 }

@@ -1,8 +1,8 @@
 package cn.com.misakanetwork.service
 
-import cn.com.misakanetwork.dao.CategoryDAO
 import cn.com.misakanetwork.dao.ArticleDAO
 import cn.com.misakanetwork.dao.ArticleToCategoryDAO
+import cn.com.misakanetwork.dao.CategoryDAO
 import cn.com.misakanetwork.dto.*
 import cn.com.misakanetwork.enum.OSSInfo
 import cn.com.misakanetwork.plugins.OSSInstance
@@ -11,7 +11,6 @@ import cn.com.misakanetwork.plugins.groupConcat
 import cn.com.misakanetwork.vo.ArticleUploadVO
 import cn.com.misakanetwork.vo.ArticleVO
 import com.aliyun.oss.OSSException
-import io.ktor.server.html.*
 import io.ktor.server.plugins.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -49,9 +48,9 @@ class ArticleService : ArticleVO {
 		val a = ArticleDAO
 		val ac = CategoryDAO
 		return database.from(atc)
-			.leftJoin(atc2,atc2.article eq atc.article)
-			.leftJoin(a,a.id eq atc.article)
-			.leftJoin(ac,ac.id eq atc2.category)
+			.leftJoin(atc2, atc2.article eq atc.article)
+			.leftJoin(a, a.id eq atc.article)
+			.leftJoin(ac, ac.id eq atc2.category)
 			.select(
 				a.id,
 				a.brief,
@@ -76,7 +75,7 @@ class ArticleService : ArticleVO {
 				createAt = it[ArticleDAO.createAt],
 				views = it[ArticleDAO.views],
 				categories = if (descriptions != null && categories != null) {
-					descriptions.mapIndexed { index, s -> CategoryDTO(s, categories[index]) }
+					descriptions.mapIndexed { index, s -> CategoryDTO(s, categories[index], 1) }
 				} else {
 					null
 				}
@@ -84,7 +83,7 @@ class ArticleService : ArticleVO {
 		}
 	}
 
-	override suspend fun getArticleList(page: Int, pageSize:Int, category: Int?): PaginationDTO<List<ArticleDTO>> {
+	override suspend fun getArticleList(page: Int, pageSize: Int, category: Int?): PaginationDTO<List<ArticleDTO>> {
 		val query = if (category == null) {
 			getDefaultQuery()
 		} else {

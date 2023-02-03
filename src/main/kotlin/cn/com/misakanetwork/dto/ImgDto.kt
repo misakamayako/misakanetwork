@@ -80,3 +80,21 @@ data class UpdateImgDTO(
 	@Transient
 	val private: Boolean? = false
 )
+
+@Serializable
+data class AlbumQueryDTO(
+	val page: Int?,
+	val pageSize: Int?,
+	val keyword: String?,
+	val category: Int?,
+	@Transient
+	val showNsfw: Boolean? = false,
+	@Transient
+	val showPrivate: Boolean? = false
+)
+
+@Serializable
+data class AlbumViewSetting(
+	val nsfw: Boolean? = null,
+	val private: Boolean? = null
+)

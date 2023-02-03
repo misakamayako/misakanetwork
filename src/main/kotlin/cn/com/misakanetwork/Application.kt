@@ -5,6 +5,7 @@ import cn.com.misakanetwork.route.router
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.util.pipeline.*
 
 
@@ -22,13 +23,14 @@ fun Application.module() {
 	install(Helmet) {
 		useDefault()
 	}
+	install(XForwardedHeaders)
 	val beforeFallback = PipelinePhase("")
 	insertPhaseBefore(ApplicationCallPipeline.Fallback, beforeFallback)
 	intercept(beforeFallback) {
 		if (call.response.status() == null) {
 			throw NotFoundException()
-		} else if (!call.response.isCommitted){
-			call.response.headers.append("charset","UTF-8")
+		} else if (!call.response.isCommitted) {
+			call.response.headers.append("charset", "UTF-8")
 		}
 	}
 }

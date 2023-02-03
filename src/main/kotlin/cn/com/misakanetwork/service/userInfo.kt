@@ -1,4 +1,4 @@
-package cn.com.misakanetwork.service.user
+package cn.com.misakanetwork.service
 
 import cn.com.misakanetwork.dao.UserDao
 import cn.com.misakanetwork.dto.LoginDTO
@@ -40,14 +40,7 @@ class UserService {
 		}
 		if (authenticate(loginDTO.password, passWord, privateKey ?: "")) {
 			val newPrivateKey = generateSalt()
-			val sessionId = getEncryptedPassword(System.currentTimeMillis().toString(), newPrivateKey)
-			database.update(UserDao) {
-				set(it.sessionId, sessionId)
-				where {
-					it.id eq userDto.id!!
-				}
-			}
-			return sessionId
+			return getEncryptedPassword(System.currentTimeMillis().toString(), newPrivateKey)
 		} else {
 			throw AuthorizationException("The username and/or password you specified are/is not correct.")
 		}

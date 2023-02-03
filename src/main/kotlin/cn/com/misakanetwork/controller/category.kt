@@ -1,30 +1,38 @@
 package cn.com.misakanetwork.controller
 
 import cn.com.misakanetwork.dto.CategoryDTO
+import cn.com.misakanetwork.dto.ResponseDTO
+import cn.com.misakanetwork.plugins.requireLogin
 import cn.com.misakanetwork.service.CategoryService
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun categoryController(app: Application) {
 	app.routing {
-		route("/category/article/") {
+		val categoryService by lazy { CategoryService() }
+		route("/category/categories/") {
 			get {
-				CategoryService(call).getArticle()
+				val type: Int? = call.request.queryParameters["type"]?.toInt()
+				call.respond(ResponseDTO(data = categoryService.getCategory(type)))
 			}
 			post {
-				val dto: CategoryDTO
-				try {
-					dto = call.receive()
-				} catch (e: Throwable) {
-					throw BadRequestException("请求体不合法")
+				requireLogin {
+					val dto: CategoryDTO
+					try {
+						dto = call.receive()
+					} catch (e: Throwable) {
+						throw BadRequestException("请求体不合法")
+					}
+					call.respond(ResponseDTO(data = categoryService.addCategory(dto)))
 				}
-				CategoryService(call).addArticleCategory(dto)
 			}
 		}
 		get("/category/article/sum") {
-			CategoryService(call).getArticleSum()
+			val type: Int? = call.request.queryParameters["type"]?.toInt()
+			call.respond(ResponseDTO(data = categoryService.getArticleCategorySum(type)))
 		}
 	}
 }
