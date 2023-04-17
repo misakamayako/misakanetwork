@@ -68,6 +68,7 @@ dependencies {
     implementation(kotlin("script-runtime"))
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     implementation(kotlin("stdlib-jdk8"))
+	testImplementation("io.ktor:ktor-server-test-host-jvm:2.0.2")
 }
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {

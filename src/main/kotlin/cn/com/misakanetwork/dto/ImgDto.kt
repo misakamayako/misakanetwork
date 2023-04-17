@@ -8,7 +8,8 @@ import kotlinx.serialization.Transient
 data class AlbumDTO(
 	val id: Int,
 	val title: String,
-	val category: List<CategoryDTO>
+	val cover: String?,
+	val category: List<CategoryDTO>?
 )
 
 @Serializable
@@ -38,21 +39,20 @@ data class ImgDTO(
 	val id: Int = -1,
 	val url: String,
 	val name: String,
-	val category: List<CategoryDTO>,
+	val category: List<CategoryDTO>?,
 )
 
 @Serializable
 data class ImgDetailDTO(
 	@Transient
 	val id: Int = -1,
+	@Transient
 	val eigenvalues: String = "",
 	val url: String,
 	val name: String,
 	val category: List<CategoryDTO>,
 	val album: AlbumDTO?,
-	@Transient
 	val nsfw: Boolean = false,
-	@Transient
 	val private: Boolean = false
 )
 
@@ -60,11 +60,10 @@ data class ImgDetailDTO(
 data class ImgUploadDTO(
 	@Required
 	val fileUrl: String,
-	val categories: List<Int>,
-	val album: Int?,
-	@Transient
+	val name: String,
+	val categories: List<Int>? =null,
+	val album: Int? = null,
 	val nsfw: Boolean = false,
-	@Transient
 	val private: Boolean = false
 )
 
@@ -83,8 +82,8 @@ data class UpdateImgDTO(
 
 @Serializable
 data class AlbumQueryDTO(
-	val page: Int?,
-	val pageSize: Int?,
+	val page: Int,
+	val pageSize: Int,
 	val keyword: String?,
 	val category: Int?,
 	@Transient

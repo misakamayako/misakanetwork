@@ -1,24 +1,18 @@
 package cn.com.misakanetwork.plugins
 
+import cn.com.misakanetwork.tools.unauthorizedHandle
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 import java.util.*
 
 suspend fun <TSubject : Any> PipelineContext<TSubject, ApplicationCall>.requireLogin(
-	function: suspend () -> TSubject
-): TSubject {
-	val cookie = context.request.cookies["csrfToken"]
-	if (cookie is String) {
-		val resource = redisPool.resource
-		if (resource[cookie] != "") {
-			resource.close()
-			return function()
-		} else {
-			throw AuthorizationException("用户未授权")
-		}
+	next: suspend () -> TSubject
+) {
+	if (checkLogin(getToken(context))) {
+		next()
 	} else {
-		throw AuthorizationException("用户未授权")
+		unauthorizedHandle(context)
 	}
 }
 
@@ -38,4 +32,18 @@ fun setToken(call: ApplicationCall, token: String) {
 
 fun getToken(call: ApplicationCall): String? {
 	return call.request.cookies["__Secure-csrfToken"]
+}
+
+fun checkLogin(token: String?): Boolean {
+	return if (token is String) {
+		val resource = redisPool.resource
+		if (resource[token] != "") {
+			resource.close()
+			true
+		} else {
+			false
+		}
+	} else {
+		false
+	}
 }

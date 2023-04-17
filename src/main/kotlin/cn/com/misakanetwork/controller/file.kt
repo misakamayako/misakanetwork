@@ -1,10 +1,13 @@
 package cn.com.misakanetwork.controller
 
+import cn.com.misakanetwork.dto.ErrorDetail
+import cn.com.misakanetwork.dto.ErrorResponse
 import cn.com.misakanetwork.dto.ResponseDTO
+import cn.com.misakanetwork.enum.OSSInfo
 import cn.com.misakanetwork.plugins.InternalServerError
 import cn.com.misakanetwork.plugins.requireLogin
 import cn.com.misakanetwork.service.FileService
-import com.aliyun.oss.OSSException
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -19,30 +22,37 @@ fun fileController(app: Application) {
 		post("/file/upload") {
 			requireLogin {
 				val content = call.receiveMultipart()
+				var fileBytes: ByteArray? = null
+				var tail: String? = null
+				var bucket: OSSInfo = OSSInfo.MARKDOWN
 				content.forEachPart {
-					if (it is PartData.FileItem) {
-						try {
-							val tail = it.originalFileName?.substringAfterLast('.')
-							call.respond(
-								ResponseDTO(
-									data = fileService
-										.fileUpload(
-											withContext(Dispatchers.IO) {
-												it.streamProvider().readAllBytes()
-											},
-											tail
-										)
-								)
-							)
-						} catch (e: OSSException) {
-							throw InternalServerError("oss失败" + e.message)
-						} catch (e: Exception) {
-							throw InternalServerError(e.message)
+					when (it) {
+						is PartData.FileItem -> {
+							try {
+								tail = it.originalFileName?.substringAfterLast('.')
+								fileBytes = withContext(Dispatchers.IO) {
+									it.streamProvider().readAllBytes()
+								}
+							} catch (e: Exception) {
+								throw InternalServerError(e.message)
+							}
+						}
+
+						is PartData.FormItem -> {
+							bucket = if (it.value == "image") OSSInfo.PICTURE else OSSInfo.OpenSource
+						}
+
+						else -> {
 						}
 					}
 				}
-				if (!call.response.isCommitted) {
-					throw InternalServerError("未知错误")
+				if (fileBytes != null) {
+					call.respond(HttpStatusCode.Created, ResponseDTO(data=fileService.fileUpload(fileBytes!!, bucket, tail)))
+				} else {
+					call.respond(
+						HttpStatusCode.BadRequest,
+						ErrorResponse(ErrorDetail(400, "上传文件不能为空", call.request.uri))
+					)
 				}
 			}
 		}

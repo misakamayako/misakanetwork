@@ -9,6 +9,7 @@ import org.ktorm.schema.varchar
 interface Album : Entity<Album> {
 	val id: Int
 	val title: String
+	val cover: String?
 	val nsfw: Boolean
 	val private: Boolean
 }
@@ -16,6 +17,35 @@ interface Album : Entity<Album> {
 object AlbumDAO : Table<Album>("album") {
 	val id = int("id").primaryKey().bindTo { it.id }
 	val title = varchar("title").bindTo { it.title }
+	val cover = varchar("cover").bindTo { it.cover }
 	val nsfw = boolean("nsfw").bindTo { it.nsfw }
 	val private = boolean("private").bindTo { it.private }
+}
+
+interface Images : Entity<Images> {
+	val id: Int
+	val eigenvalues: String
+	val name: String
+	val nsfw: Boolean
+	val private: Boolean
+	val album: Album?
+}
+
+object ImagesDAO : Table<Images>("img") {
+	val id = int("id").primaryKey().bindTo { it.id }
+	val eigenvalues = varchar("eigenvalues").bindTo { it.eigenvalues }
+	val name = varchar("name").bindTo { it.name }
+	val nsfw = boolean("nsfw").bindTo { it.nsfw }
+	val private = boolean("private").bindTo { it.private }
+	val album = int("album").references(AlbumDAO) { it.album }
+}
+
+interface ImagesToAlbum : Entity<ImagesToAlbum> {
+	val imgId: Int
+	val albumId: Int
+}
+
+object ImagesToAlbumDAO : Table<ImagesToAlbum>("img_to_album") {
+	val imgId = int("img_Id").bindTo { it.imgId }
+	val albumId = int("album_id").bindTo { it.albumId }
 }

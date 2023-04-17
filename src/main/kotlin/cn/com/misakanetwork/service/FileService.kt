@@ -13,14 +13,14 @@ import java.io.ByteArrayInputStream
 class FileService : FileServerVO {
 
 	@Throws(OSSException::class, ClientException::class, Exception::class)
-	override suspend fun fileUpload(fileBytes: ByteArray, tail: String?): String {
+	override suspend fun fileUpload(fileBytes: ByteArray,ossInfo:OSSInfo, tail: String?): String {
 		val eigen = calculateEigenvalues(fileBytes) + if (tail != null) ".$tail" else ""
 		OSSInstance.putObject(
-			OSSInfo.OpenSource.bucket,
+			ossInfo.bucket,
 			eigen,
 			ByteArrayInputStream(fileBytes)
 		)
-		return "https://${OSSInfo.OpenSource.bucket}.${AliOSS.endpoint}/$eigen"
+		return "https://${ossInfo.bucket}.${AliOSS.endpoint}/$eigen"
 	}
 
 	override suspend fun fileUploadSecurity(fileBytes: ByteArray): FileMappingDTO {

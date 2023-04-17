@@ -75,7 +75,7 @@ class ArticleService : ArticleVO {
 				createAt = it[ArticleDAO.createAt],
 				views = it[ArticleDAO.views],
 				categories = if (descriptions != null && categories != null) {
-					descriptions.mapIndexed { index, s -> CategoryDTO(s, categories[index], 1) }
+					List(descriptions.size) { index -> CategoryDTO(descriptions[index], categories[index], 1) }
 				} else {
 					null
 				}

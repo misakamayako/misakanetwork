@@ -3,7 +3,6 @@ package cn.com.misakanetwork
 import cn.com.misakanetwork.plugins.*
 import cn.com.misakanetwork.route.router
 import io.ktor.server.application.*
-import io.ktor.server.html.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.util.pipeline.*
@@ -29,8 +28,6 @@ fun Application.module() {
 	intercept(beforeFallback) {
 		if (call.response.status() == null) {
 			throw NotFoundException()
-		} else if (!call.response.isCommitted) {
-			call.response.headers.append("charset", "UTF-8")
 		}
 	}
 }
