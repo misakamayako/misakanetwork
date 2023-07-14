@@ -12,7 +12,6 @@ import io.ktor.server.routing.*
 
 fun articleController(app: Application) {
 	val articleService by lazy {
-		println("ArticleService init")
 		ArticleService()
 	}
 	app.routing {

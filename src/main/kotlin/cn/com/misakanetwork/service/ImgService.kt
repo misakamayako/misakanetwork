@@ -13,7 +13,7 @@ import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
 
 class ImgService : ImageServiceVo {
-	override suspend fun createAlbum(createAlbumDTO: CreateAlbumDTO): AlbumDTO {
+	override suspend fun createAlbum(createAlbumDTO: CreateAlbumDTO) {
 		try {
 			database.insert(AlbumDAO) {
 				set(it.title, createAlbumDTO.title)
@@ -28,9 +28,7 @@ class ImgService : ImageServiceVo {
 					}
 				}
 			}
-			if (id != -1) {
-				return getAlbum(id)
-			} else {
+			if (id == -1) {
 				throw UnknownError()
 			}
 		} catch (e: Error) {
@@ -43,25 +41,13 @@ class ImgService : ImageServiceVo {
 	}
 
 	override suspend fun getAlbumList(albumQueryDTO: AlbumQueryDTO): PaginationDTO<List<AlbumDTO>> {
-		val list = database.from(AlbumDAO)
-			.leftJoin(CategoryDAO, (CategoryDAO.id eq AlbumDAO.id) and (CategoryDAO.type eq 2))
-			.select(
-				AlbumDAO.id,
-				AlbumDAO.title,
-				AlbumDAO.cover,
-				AlbumDAO.nsfw,
-				AlbumDAO.private,
-				CategoryDAO.id,
-				groupConcat(CategoryDAO.description, ",").aliased("categories"),
-				groupConcat(CategoryDAO.id, ",").aliased("categoryIds"),
-			)
-			.groupBy(AlbumDAO.id)
+		val list = albumBaseSql
 			.where {
 				val arrayList = ArrayList<ColumnDeclaring<Boolean>>()
 				arrayList += AlbumDAO.nsfw eq (albumQueryDTO.showNsfw == true)
 				arrayList += AlbumDAO.private eq (albumQueryDTO.showPrivate == true)
-				if (albumQueryDTO.category != null) {
-					arrayList += CategoryDAO.id eq albumQueryDTO.category
+				if (!albumQueryDTO.category.isNullOrEmpty()) {
+					arrayList += CategoryDAO.id inList albumQueryDTO.category
 				}
 				if (albumQueryDTO.keyword != null) {
 					arrayList += AlbumDAO.title like "%${albumQueryDTO.keyword}%"
@@ -70,13 +56,7 @@ class ImgService : ImageServiceVo {
 			}
 			.limit((albumQueryDTO.page - 1) * albumQueryDTO.pageSize, albumQueryDTO.pageSize)
 			.map {
-				val category = if (it.getString("categoryIds") != null) {
-					val a = it.getString("categories")!!.split(",")
-					val b = it.getString("categoryIds")!!.split(",")
-					List(a.size) { index -> CategoryDTO(a[index], b[index].toInt(), 2) }
-				} else {
-					null
-				}
+				val category = getCategory(it)
 				AlbumDTO(
 					id = it[AlbumDAO.id]!!,
 					title = it[AlbumDAO.title]!!,
@@ -90,12 +70,12 @@ class ImgService : ImageServiceVo {
 			.groupBy(AlbumDAO.id)
 			.where {
 				val arrayList = ArrayList<ColumnDeclaring<Boolean>>()
-				arrayList+=	AlbumDAO.nsfw eq (albumQueryDTO.showNsfw == true)
-				arrayList+=AlbumDAO.private eq (albumQueryDTO.showPrivate == true)
+				arrayList += AlbumDAO.nsfw eq (albumQueryDTO.showNsfw == true)
+				arrayList += AlbumDAO.private eq (albumQueryDTO.showPrivate == true)
 				if (albumQueryDTO.category != null) {
-						arrayList+=	CategoryDAO.id eq albumQueryDTO.category
+					arrayList += CategoryDAO.id inList albumQueryDTO.category
 				}
-				arrayList.reduce{a,b->a and b}
+				arrayList.reduce { a, b -> a and b }
 			}
 			.map {
 				it.getInt(1)
@@ -108,8 +88,22 @@ class ImgService : ImageServiceVo {
 		)
 	}
 
-	override suspend fun getAlbum(albumId: Int): AlbumDTO {
-		TODO("Not yet implemented")
+	override suspend fun getAlbum(albumId: Int): AlbumWithImgList? {
+		val albumWithImgList = albumBaseSql.where {
+			AlbumDAO.id eq albumId
+		}.map {
+			val category = getCategory(it)
+			AlbumWithImgList(
+				id = it[AlbumDAO.id]!!,
+				title = it[AlbumDAO.title]!!,
+				cover = it[AlbumDAO.cover],
+				category = category
+			)
+		}.getOrNull(0) ?: return null
+		albumWithImgList.imgList = imgBaseSql.where {
+			ImagesDAO.album eq albumId
+		}.let(::getImgList)
+		return albumWithImgList
 	}
 
 	override suspend fun getImgList(
@@ -119,51 +113,16 @@ class ImgService : ImageServiceVo {
 		showPrivate: Boolean,
 		nsfw: Boolean
 	): PaginationDTO<List<ImgDTO>> {
-		val query = database
-			.from(ImagesDAO)
-			.leftJoin(AlbumDAO, ImagesDAO.album eq AlbumDAO.id)
-			.leftJoin(CategoryDAO, (CategoryDAO.id eq ImagesDAO.id) and (CategoryDAO.type eq 2))
-			.select(
-				ImagesDAO.id,
-				ImagesDAO.eigenvalues,
-				ImagesDAO.name,
-				ImagesDAO.nsfw,
-				ImagesDAO.private,
-				AlbumDAO.id.aliased("album_id"),
-				AlbumDAO.title.aliased("album_title"),
-				groupConcat(CategoryDAO.description, ",").aliased("categories"),
-				groupConcat(CategoryDAO.id, ",").aliased("categoryIds"),
-			)
-			.groupBy(ImagesDAO.id)
+		val query = imgBaseSql
 			.where {
 				val arrayList = ArrayList<ColumnDeclaring<Boolean>>()
-				arrayList+=ImagesDAO.private eq showPrivate
-				arrayList+=ImagesDAO.nsfw eq nsfw
+				arrayList += ImagesDAO.private eq showPrivate
+				arrayList += ImagesDAO.nsfw eq nsfw
 				if (tags != null) {
-					arrayList+=CategoryDAO.id inList tags
+					arrayList += CategoryDAO.id inList tags
 				}
-				arrayList.reduce{a,b->a and b}
-			}.map {
-				val categoryIds = it.getArray("categoryIds")?.array as Array<*>?
-				val categories = it.getArray("categories")?.array as Array<*>?
-				val categoryDTOList = if (categoryIds != null && categories != null) {
-					List<CategoryDTO>(categoryIds.size) { index ->
-						CategoryDTO(
-							categories[index].toString(),
-							categories[index].toString().toInt(),
-							2
-						)
-					}
-				} else {
-					null
-				}
-				ImgDTO(
-					it[ImagesDAO.id]!!,
-					it[ImagesDAO.eigenvalues]!!,
-					it[ImagesDAO.name]!!,
-					categoryDTOList
-				)
-			}
+				arrayList.reduce { a, b -> a and b }
+			}.let(::getImgList)
 		return PaginationDTO(total = 10, page = 1, pageSize = 1, data = query)
 	}
 
@@ -172,27 +131,28 @@ class ImgService : ImageServiceVo {
 	}
 
 	override suspend fun uploadImg(imgUploadDTO: ImgUploadDTO): ImgDetailDTO {
-		database.insert(ImagesDAO){
-			set(ImagesDAO.eigenvalues,imgUploadDTO.fileUrl)
-			set(ImagesDAO.name,imgUploadDTO.name)
-			set(ImagesDAO.nsfw,imgUploadDTO.nsfw)
-			set(ImagesDAO.album,imgUploadDTO.album)
-			set(ImagesDAO.nsfw,imgUploadDTO.nsfw)
-			set(ImagesDAO.private,imgUploadDTO.private)
+		database.insert(ImagesDAO) {
+			set(ImagesDAO.eigenvalues, imgUploadDTO.fileUrl)
+			set(ImagesDAO.name, imgUploadDTO.name)
+			set(ImagesDAO.nsfw, imgUploadDTO.nsfw)
+			set(ImagesDAO.album, imgUploadDTO.album)
+			set(ImagesDAO.nsfw, imgUploadDTO.nsfw)
+			set(ImagesDAO.private, imgUploadDTO.private)
 		}
-		if (!imgUploadDTO.categories.isNullOrEmpty()){
+		if (!imgUploadDTO.categories.isNullOrEmpty()) {
 			val id = database.from(ImagesDAO).select(ImagesDAO.id).where {
 				ImagesDAO.eigenvalues eq imgUploadDTO.fileUrl
 			}.map { it[ImagesDAO.id] }.firstOrNull() ?: throw InternalError("数据库更新失败")
-			database.batchInsert(ImagesToAlbumDAO){
+			database.batchInsert(ImagesToAlbumDAO) {
 				imgUploadDTO.categories.map {
-					item{
+					item {
 
 					}
 				}
 			}
 
 		}
+		TODO("")
 	}
 
 	override suspend fun updateImg(updateImgDTO: UpdateImgDTO): ImgDetailDTO {
@@ -201,5 +161,72 @@ class ImgService : ImageServiceVo {
 
 	override suspend fun deleteAlbum(id: Int) {
 		TODO("Not yet implemented")
+	}
+
+	private fun getCategory(queryRowSet: QueryRowSet) = if (queryRowSet.getString("categoryIds") != null) {
+		val a = queryRowSet.getString("categories")!!.split(",")
+		val b = queryRowSet.getString("categoryIds")!!.split(",")
+		List(a.size) { index -> CategoryDTO(a[index], b[index].toInt(), 2) }
+	} else {
+		null
+	}
+
+	private val albumBaseSql: Query
+		get() {
+			return database.from(AlbumDAO)
+				.leftJoin(CategoryDAO, (CategoryDAO.id eq AlbumDAO.id) and (CategoryDAO.type eq 2))
+				.select(
+					AlbumDAO.id,
+					AlbumDAO.title,
+					AlbumDAO.cover,
+					AlbumDAO.nsfw,
+					AlbumDAO.private,
+					CategoryDAO.id,
+					groupConcat(CategoryDAO.description, ",").aliased("categories"),
+					groupConcat(CategoryDAO.id, ",").aliased("categoryIds"),
+				)
+				.groupBy(AlbumDAO.id)
+		}
+	private val imgBaseSql: Query
+		get() {
+			return database
+				.from(ImagesDAO)
+				.leftJoin(AlbumDAO, ImagesDAO.album eq AlbumDAO.id)
+				.leftJoin(CategoryDAO, (CategoryDAO.id eq ImagesDAO.id) and (CategoryDAO.type eq 2))
+				.select(
+					ImagesDAO.id,
+					ImagesDAO.eigenvalues,
+					ImagesDAO.name,
+					ImagesDAO.nsfw,
+					ImagesDAO.private,
+					AlbumDAO.id.aliased("album_id"),
+					AlbumDAO.title.aliased("album_title"),
+					groupConcat(CategoryDAO.description, ",").aliased("categories"),
+					groupConcat(CategoryDAO.id, ",").aliased("categoryIds"),
+				)
+				.groupBy(ImagesDAO.id)
+		}
+	private fun getImgList(query:Query):List<ImgDTO>{
+		return query.map {
+			val categoryIds = it.getArray("categoryIds")?.array as Array<*>?
+			val categories = it.getArray("categories")?.array as Array<*>?
+			val categoryDTOList = if (categoryIds != null && categories != null) {
+				List(categoryIds.size) { index ->
+					CategoryDTO(
+						categories[index].toString(),
+						categoryIds[index].toString().toInt(),
+						2
+					)
+				}
+			} else {
+				null
+			}
+			ImgDTO(
+				it[ImagesDAO.id]!!,
+				it[ImagesDAO.eigenvalues]!!,
+				it[ImagesDAO.name]!!,
+				categoryDTOList
+			)
+		}
 	}
 }

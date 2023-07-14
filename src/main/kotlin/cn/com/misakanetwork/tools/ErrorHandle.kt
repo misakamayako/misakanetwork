@@ -13,65 +13,66 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 suspend fun notFindHandle(call: ApplicationCall) {
-	if (call.request.accept()?.contains("json") == true) {
-		call.respond(
-			HttpStatusCode.NotFound,
-			ErrorResponse(ErrorDetail(404, "The requested resource is not found", call.request.uri))
-		)
-	} else {
-		call.respondRedirect("/404")
-	}
+    if (call.request.accept()?.contains("json") == true) {
+        call.respond(
+            HttpStatusCode.NotFound,
+            ErrorResponse(ErrorDetail(404, "The requested resource is not found", call.request.uri))
+        )
+    } else {
+        call.respondRedirect("/404")
+    }
 }
 
 suspend fun unauthorizedHandle(call: ApplicationCall) {
-	if (call.request.accept()?.contains("json") == true) {
-		call.respond(
-			HttpStatusCode.Unauthorized,
-			ErrorResponse(
-				ErrorDetail(
-					HttpStatusCode.Unauthorized.value,
-					"You are not authorized to access this resource. Please log in and try again.",
-					call.request.uri
-				)
-			)
-		)
-	} else {
-		call.respondRedirect("/401")
-	}
+    if (call.request.accept()?.contains("json") == true) {
+        call.respond(
+            HttpStatusCode.Unauthorized,
+            ErrorResponse(
+                ErrorDetail(
+                    HttpStatusCode.Unauthorized.value,
+                    "You are not authorized to access this resource. Please log in and try again.",
+                    call.request.uri
+                )
+            )
+        )
+    } else {
+        call.respondRedirect("/401")
+    }
 }
 
 suspend fun badRequestHandle(call: ApplicationCall, required: String) {
-	if (call.request.accept()?.contains("json") == true) {
-		call.respond(
-			HttpStatusCode.BadRequest,
-			ErrorResponse(
-				ErrorDetail(
-					HttpStatusCode.BadRequest.value,
-					"The request is missing a required parameter '$required'",
-					call.request.uri
-				)
-			)
-		)
-	} else {
-		call.respondRedirect("/400")
-	}
+    if (call.request.accept()?.contains("json") == true) {
+        call.respond(
+            HttpStatusCode.BadRequest,
+            ErrorResponse(
+                ErrorDetail(
+                    HttpStatusCode.BadRequest.value,
+                    "The request is missing a required parameter '$required'",
+                    call.request.uri
+                )
+            )
+        )
+    } else {
+        call.respondRedirect("/400")
+    }
 }
+
 @OptIn(InternalSerializationApi::class)
-suspend inline fun <reified T:Any> badRequestHandle(call: ApplicationCall) {
-	val type = T::class.serializer().descriptor
-	println(type)
-	if (call.request.accept()?.contains("json") == true) {
-		call.respond(
-			HttpStatusCode.BadRequest,
-			ErrorResponse(
-				ErrorDetail(
-					HttpStatusCode.BadRequest.value,
-					"The request is missing a required parameter '${type}'",
-					call.request.uri
-				)
-			)
-		)
-	} else {
-		call.respondRedirect("/400")
-	}
+suspend inline fun <reified T : Any> badRequestHandle(call: ApplicationCall) {
+    val type = T::class.serializer().descriptor
+    println(type)
+    if (call.request.accept()?.contains("json") == true) {
+        call.respond(
+            HttpStatusCode.BadRequest,
+            ErrorResponse(
+                ErrorDetail(
+                    HttpStatusCode.BadRequest.value,
+                    "The request is missing a required parameter '${type}'",
+                    call.request.uri
+                )
+            )
+        )
+    } else {
+        call.respondRedirect("/400")
+    }
 }

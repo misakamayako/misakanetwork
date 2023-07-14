@@ -7,43 +7,43 @@ import io.ktor.util.pipeline.*
 import java.util.*
 
 suspend fun <TSubject : Any> PipelineContext<TSubject, ApplicationCall>.requireLogin(
-	next: suspend () -> TSubject
+    next: suspend () -> TSubject,
 ) {
-	if (checkLogin(getToken(context))) {
-		next()
-	} else {
-		unauthorizedHandle(context)
-	}
+    if (checkLogin(getToken(context))) {
+        next()
+    } else {
+        unauthorizedHandle(context)
+    }
 }
 
 fun setToken(call: ApplicationCall, token: String) {
-	val cookie = Cookie(
-		name = "__Secure-csrfToken",
-		value = token,
-		maxAge = 7 * 24 * 3600,
-		httpOnly = true,
-		secure = true,
-		path = "/lastOrder"
-	)
-	val resource = redisPool.resource
-	resource.setex(token, 7 * 24 * 3600L, Date().toString())
-	call.response.cookies.append(cookie)
+    val cookie = Cookie(
+        name = "__Secure-csrfToken",
+        value = token,
+        maxAge = 7 * 24 * 3600,
+        httpOnly = true,
+        secure = true,
+        path = "/lastOrder"
+    )
+    val resource = redisPool.resource
+    resource.setex(token, 7 * 24 * 3600L, Date().toString())
+    call.response.cookies.append(cookie)
 }
 
 fun getToken(call: ApplicationCall): String? {
-	return call.request.cookies["__Secure-csrfToken"]
+    return call.request.cookies["__Secure-csrfToken"]
 }
 
 fun checkLogin(token: String?): Boolean {
-	return if (token is String) {
-		val resource = redisPool.resource
-		if (resource[token] != "") {
-			resource.close()
-			true
-		} else {
-			false
-		}
-	} else {
-		false
-	}
+    return if (token is String) {
+        val resource = redisPool.resource
+        if (resource[token] != "") {
+            resource.close()
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    }
 }

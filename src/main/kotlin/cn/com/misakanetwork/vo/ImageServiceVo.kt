@@ -3,10 +3,10 @@ package cn.com.misakanetwork.vo
 import cn.com.misakanetwork.dto.*
 
 interface ImageServiceVo {
-	suspend fun createAlbum(createAlbumDTO: CreateAlbumDTO): AlbumDTO
+	suspend fun createAlbum(createAlbumDTO: CreateAlbumDTO)
 	suspend fun updateAlbum(updateAlbumDTO: UpdateAlbumDTO): AlbumDTO
 	suspend fun getAlbumList(albumQueryDTO: AlbumQueryDTO): PaginationDTO<List<AlbumDTO>>
-	suspend fun getAlbum(albumId: Int): AlbumDTO
+	suspend fun getAlbum(albumId: Int): AlbumWithImgList?
 	suspend fun getImgList(
 		page: Int,
 		pageSize: Int,

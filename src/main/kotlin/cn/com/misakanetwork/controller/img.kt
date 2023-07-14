@@ -6,8 +6,11 @@ import cn.com.misakanetwork.plugins.getToken
 import cn.com.misakanetwork.plugins.redisPool
 import cn.com.misakanetwork.plugins.requireLogin
 import cn.com.misakanetwork.service.ImgService
+import cn.com.misakanetwork.tools.IndexType
 import cn.com.misakanetwork.tools.badRequestHandle
+import cn.com.misakanetwork.tools.getAsList
 import cn.com.misakanetwork.tools.notFindHandle
+import cn.com.misakanetwork.tools.InternalOnly
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -20,8 +23,8 @@ fun imgController(app: Application) {
 		route("/album") {
 			post {
 				requireLogin {
-					val createAlbumDTO = call.receive<CreateAlbumDTO>()
-					call.respond(ResponseDTO(data = imgService.createAlbum(createAlbumDTO)))
+					call.receive<CreateAlbumDTO>().let { imgService.createAlbum(it) }
+					call.respond(HttpStatusCode.Created)
 				}
 			}
 			//获取相册列表
@@ -29,15 +32,15 @@ fun imgController(app: Application) {
 				val setting = (call.request.cookies["imgSetting"] ?: "0").toInt()
 				val query = call.request.queryParameters.let {
 					AlbumQueryDTO(
-						it["page"]?.toInt()?:1,
-						it["pageSize"]?.toInt()?:20,
+						it["page"]?.toInt() ?: 1,
+						it["pageSize"]?.toInt() ?: 20,
 						it["keyword"],
-						it["category"]?.toInt(),
+						it.getAsList("tags", IndexType.Empty)?.map(String::toInt),
 						(0b001 and setting) == 0b001,
 						(0b010 and setting) == 0b010,
 					)
 				}
-				call.respond(imgService.getAlbumList(query))
+				call.respond(ResponseDTO(data = imgService.getAlbumList(query)))
 			}
 			//获取指定相册
 			get("{id}") {
@@ -58,6 +61,11 @@ fun imgController(app: Application) {
 					}
 					imgService.deleteAlbum(id)
 					call.respondBytes(bytes = byteArrayOf(), status = HttpStatusCode.NoContent)
+				}
+			}
+			get("all") {
+				InternalOnly{
+					call.respond(HttpStatusCode.OK)
 				}
 			}
 		}
@@ -84,7 +92,7 @@ fun imgController(app: Application) {
 				val showNSFW = context.request.cookies["__Secure-NSFW"] == "T"
 				val page = (call.request.queryParameters["page"] ?: "1").toInt()
 				val pageSize = (call.request.queryParameters["pageSize"] ?: "20").toInt()
-				val tags = (call.request.queryParameters["tags"])?.split(",")?.map(String::toInt)
+				val tags = call.request.queryParameters.getAsList("tags", IndexType.Empty)?.map(String::toInt)
 				call.respond(ResponseDTO(data = imgService.getImgList(page, pageSize, tags, showPrivate, showNSFW)))
 			}
 			get("{eigenvalues}") {

@@ -9,6 +9,7 @@ import cn.com.misakanetwork.plugins.requireLogin
 import cn.com.misakanetwork.service.FileService
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,44 +18,48 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 fun fileController(app: Application) {
-	val fileService by lazy { FileService() }
-	app.routing {
-		post("/file/upload") {
-			requireLogin {
-				val content = call.receiveMultipart()
-				var fileBytes: ByteArray? = null
-				var tail: String? = null
-				var bucket: OSSInfo = OSSInfo.MARKDOWN
-				content.forEachPart {
-					when (it) {
-						is PartData.FileItem -> {
-							try {
-								tail = it.originalFileName?.substringAfterLast('.')
-								fileBytes = withContext(Dispatchers.IO) {
-									it.streamProvider().readAllBytes()
-								}
-							} catch (e: Exception) {
-								throw InternalServerError(e.message)
-							}
-						}
+    val fileService by lazy { FileService() }
+    app.routing {
+        post("/file/upload") {
+            requireLogin {
+                val content = call.receiveMultipart()
+                var fileBytes: ByteArray? = null
+                var tail: String? = null
+                var bucket: OSSInfo = OSSInfo.MARKDOWN
+                content.forEachPart {
+                    when (it) {
+                        is PartData.FileItem -> {
+                            try {
+                                tail = it.originalFileName?.substringAfterLast('.')
+                                fileBytes = withContext(Dispatchers.IO) {
+                                    it.streamProvider().readAllBytes()
+                                }
+                            } catch (e: Exception) {
+                                throw InternalServerError(e.message)
+                            }
+                        }
 
-						is PartData.FormItem -> {
-							bucket = if (it.value == "image") OSSInfo.PICTURE else OSSInfo.OpenSource
-						}
+                        is PartData.FormItem -> {
+                            bucket = if (it.value == "image") OSSInfo.PICTURE else OSSInfo.OpenSource
+                        }
 
-						else -> {
-						}
-					}
-				}
-				if (fileBytes != null) {
-					call.respond(HttpStatusCode.Created, ResponseDTO(data=fileService.fileUpload(fileBytes!!, bucket, tail)))
-				} else {
-					call.respond(
-						HttpStatusCode.BadRequest,
-						ErrorResponse(ErrorDetail(400, "上传文件不能为空", call.request.uri))
-					)
-				}
-			}
-		}
-	}
+                        else -> {
+                        }
+                    }
+                }
+                if (fileBytes != null) {
+                    call.respond(
+                        HttpStatusCode.Created,
+                        ResponseDTO(data = fileService.fileUpload(fileBytes!!, bucket, tail))
+                    )
+                    // todo: 使用intellij-markdown编译markdown文件
+                } else {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        ErrorResponse(ErrorDetail(400, "上传文件不能为空", call.request.uri))
+                    )
+                }
+            }
+        }
+    }
 }

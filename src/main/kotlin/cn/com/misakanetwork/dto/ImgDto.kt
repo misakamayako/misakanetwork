@@ -61,7 +61,7 @@ data class ImgUploadDTO(
 	@Required
 	val fileUrl: String,
 	val name: String,
-	val categories: List<Int>? =null,
+	val categories: List<Int>? = null,
 	val album: Int? = null,
 	val nsfw: Boolean = false,
 	val private: Boolean = false
@@ -85,7 +85,7 @@ data class AlbumQueryDTO(
 	val page: Int,
 	val pageSize: Int,
 	val keyword: String?,
-	val category: Int?,
+	val category: List<Int>?,
 	@Transient
 	val showNsfw: Boolean? = false,
 	@Transient
@@ -96,4 +96,13 @@ data class AlbumQueryDTO(
 data class AlbumViewSetting(
 	val nsfw: Boolean? = null,
 	val private: Boolean? = null
+)
+
+@Serializable
+data class AlbumWithImgList(
+	val id: Int,
+	val title: String,
+	val cover: String?,
+	val category: List<CategoryDTO>?,
+	var imgList:List<ImgDTO>? = null
 )
