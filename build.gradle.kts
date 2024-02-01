@@ -6,28 +6,26 @@ val kotlin_version: String by project
 val logback_version: String by project
 
 plugins {
-    application
-    kotlin("jvm") version "1.8.0"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.6.0"
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+	application
+	kotlin("jvm") version "2.0.0-Beta3"
+	id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0-Beta3"
+	id("io.ktor.plugin") version "3.0.0-beta-1"
 }
 
 group = "cn.com.misakanetwork"
 version = "0.0.1"
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+	mainClass.set("io.ktor.server.netty.EngineMain")
 }
 
 repositories {
-    mavenCentral()
-}
-
-tasks{
-    shadowJar {
-        manifest {
-            attributes(Pair("Main-Class", "io.ktor.server.netty.EngineMain"))
-        }
-    }
+	maven {
+		setUrl("https://maven.aliyun.com/repository/public/")
+	}
+	maven {
+		setUrl("https://maven.aliyun.com/repository/central/")
+	}
+	mavenCentral()
 }
 
 dependencies {
@@ -38,17 +36,17 @@ dependencies {
 
 // 数据库及连接池
 	implementation("com.alibaba:druid:1.2.8")
-	implementation("mysql:mysql-connector-java:8.0.27")
+	implementation("mysql:mysql-connector-java:8.0.33")
 	implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 	implementation("org.ktorm:ktorm-core:$ktorm_version")
-	implementation("org.ktorm:ktorm-support-mysql:${ktorm_version}")
-	implementation("redis.clients:jedis:4.3.1")
+	implementation("org.ktorm:ktorm-support-mysql:$ktorm_version")
+	implementation("redis.clients:jedis:5.1.0")
 
 // 日志
 	implementation("ch.qos.logback:logback-classic:$logback_version")
 
 // 阿里云对象存储服务
-	implementation("com.aliyun.oss:aliyun-sdk-oss:3.13.2")
+	implementation("com.aliyun.oss:aliyun-sdk-oss:3.16.3")
 
 // Web框架
 	implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
@@ -84,9 +82,14 @@ dependencies {
 }
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
+	jvmTarget = "21"
 }
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
+	jvmTarget = "21"
+}
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(21))
+	}
 }

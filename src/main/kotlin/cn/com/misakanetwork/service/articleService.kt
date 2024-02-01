@@ -12,9 +12,7 @@ import cn.com.misakanetwork.vo.ArticleUploadVO
 import cn.com.misakanetwork.vo.ArticleVO
 import com.aliyun.oss.OSSException
 import io.ktor.server.plugins.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.*
 import org.ktorm.database.asIterable
 import org.ktorm.dsl.*
 import java.io.ByteArrayInputStream
@@ -103,8 +101,8 @@ class ArticleService : ArticleVO {
         return PaginationDTO(total, page, 10, result)
     }
 
-    override suspend fun uploadArticle(articleUploadVO: ArticleUploadVO): ArticleDTO {
-        val ossJob = GlobalScope.launch {
+    override suspend fun uploadArticle(articleUploadVO: ArticleUploadVO)=coroutineScope {
+        val ossJob = launch {
             OSSInstance.putObject(
                 OSSInfo.MARKDOWN.bucket,
                 articleUploadVO.title + ".md",
@@ -112,7 +110,7 @@ class ArticleService : ArticleVO {
             )
         }
         var articleId = 0
-        val sqlJob = GlobalScope.launch {
+        val sqlJob = launch {
             database.useTransaction { transaction ->
                 database.insert(ArticleDAO) {
                     val brief = articleUploadVO.content.substring(0, minOf(120, articleUploadVO.content.length))
@@ -151,7 +149,7 @@ class ArticleService : ArticleVO {
             if (result == null) {
                 throw InternalError("插入失败")
             } else {
-                return result
+				return@coroutineScope result
             }
         } else {
             var message = ""

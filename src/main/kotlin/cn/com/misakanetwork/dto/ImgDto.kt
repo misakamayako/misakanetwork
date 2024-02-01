@@ -9,7 +9,11 @@ data class AlbumDTO(
 	val id: Int,
 	val title: String,
 	val cover: String?,
-	val category: List<CategoryDTO>?
+	val category: List<CategoryDTO>?,
+	@Transient
+	val nsfw: Boolean = false,
+	@Transient
+	val private: Boolean = false
 )
 
 @Serializable
@@ -100,7 +104,8 @@ data class AlbumViewSetting(
 
 @Serializable
 data class AlbumWithImgList(
-	val id: Int,
+	@Transient
+	val id: Int = -1,
 	val title: String,
 	val cover: String?,
 	val category: List<CategoryDTO>?,

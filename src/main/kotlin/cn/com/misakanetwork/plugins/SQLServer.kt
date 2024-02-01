@@ -11,7 +11,7 @@ import kotlin.system.exitProcess
 
 val database: Database by InitSQL
 
-object InitSQL : ReadOnlyProperty<Nothing?, Database> {
+private object InitSQL : ReadOnlyProperty<Nothing?, Database> {
 	@JvmField
 	val password: String = AesEncrypto.decrypt("LDV1KU86fX3ahywIQxVggw==")
 	private const val url =

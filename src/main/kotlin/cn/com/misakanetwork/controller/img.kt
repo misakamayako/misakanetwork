@@ -6,11 +6,7 @@ import cn.com.misakanetwork.plugins.getToken
 import cn.com.misakanetwork.plugins.redisPool
 import cn.com.misakanetwork.plugins.requireLogin
 import cn.com.misakanetwork.service.ImgService
-import cn.com.misakanetwork.tools.IndexType
-import cn.com.misakanetwork.tools.badRequestHandle
-import cn.com.misakanetwork.tools.getAsList
-import cn.com.misakanetwork.tools.notFindHandle
-import cn.com.misakanetwork.tools.InternalOnly
+import cn.com.misakanetwork.tools.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -49,7 +45,10 @@ fun imgController(app: Application) {
 					notFindHandle(call)
 					return@get
 				}
-				call.respond(ResponseDTO(data = imgService.getAlbum(id)))
+				imgService.ableToAccessAlbum(id, call.request.cookies)
+				val result = imgService.getAlbum(id)
+				call.respond(ResponseDTO(data = result))
+
 			}
 			//删除指定相册
 			delete("{id}") {
@@ -64,8 +63,8 @@ fun imgController(app: Application) {
 				}
 			}
 			get("all") {
-				InternalOnly{
-					call.respond(HttpStatusCode.OK)
+				InternalOnly {
+					call.respond(ResponseDTO(data = imgService.getAlbumList()))
 				}
 			}
 		}
@@ -78,7 +77,8 @@ fun imgController(app: Application) {
 						badRequestHandle<ImgUploadDTO>(call)
 						return@requireLogin
 					}
-					call.respond(ResponseDTO(data = imgService.uploadImg(imageInfo)))
+					imgService.uploadImg(imageInfo)
+					call.respondBytes(bytes = byteArrayOf(), status = HttpStatusCode.NoContent)
 				}
 			}
 			get {

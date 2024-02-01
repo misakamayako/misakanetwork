@@ -22,14 +22,6 @@ create table if not exists img
 	foreign key (album) references album (id)
 );
 
-create table if not exists img_to_album
-(
-	img_id   int not null,
-	album_id int not null,
-	foreign key (img_id) references img (id),
-	foreign key (album_id) references album (id)
-);
-
 create table if not exists img_to_category
 (
 	img_id   int not null,

@@ -11,19 +11,19 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun userController(app: Application) {
-    val resource by lazy { UserService() }
-    app.routing {
-        post<LoginDTO>("/login") {
-            setToken(call, resource.login(it))
-            call.respond(ResponseDTO(data = "ok"))
-        }
-        put<LoginDTO>("/login") {
-            call.respond(resource.put(it))
-        }
-        get("/user/info") {
-            requireLogin {
-                call.respond(resource.getUserInfo(getToken(call)!!))
-            }
-        }
-    }
+	val resource by lazy { UserService() }
+	app.routing {
+		post<LoginDTO>("/login") {
+			setToken(call, resource.login(it))
+			call.respond(ResponseDTO(data = "ok"))
+		}
+		put<LoginDTO>("/login") {
+			call.respond(resource.put(it))
+		}
+		get("/user/info") {
+			requireLogin {
+				call.respond(ResponseDTO(data = resource.getUserInfo(getToken(call)!!)))
+			}
+		}
+	}
 }

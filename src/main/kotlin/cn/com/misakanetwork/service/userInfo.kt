@@ -14,33 +14,38 @@ import org.ktorm.dsl.*
 
 
 class UserService {
-	fun getUserInfo(userSession: String): UserDto {
-		val result = database.from(UserDao).select().where {
+	fun getUserInfo(userSession: String): UserDto? {
+		return database.from(UserDao).select().where {
 			UserDao.sessionId eq userSession
-		}
-		for (i in result) {
-			return UserDto(i[UserDao.id], i[UserDao.name])
-		}
-		throw AuthenticationException()
+		}.map {
+			UserDto(
+				id = it[UserDao.id],
+				name = it[UserDao.name],
+				password = it[UserDao.password],
+				privateKey = it[UserDao.privateKey]
+			)
+		}.getOrNull(0)
 	}
 
 	fun login(loginDTO: LoginDTO): String {
-		val foundUser = database.from(UserDao).select().where { UserDao.name eq loginDTO.name }
-		var userDto: UserDto? = null
-		var passWord: String? = null
-		var privateKey: String? = null
-		for (i in foundUser) {
-			userDto = UserDto(i[UserDao.id], i[UserDao.name])
-			passWord = i[UserDao.password]
-			privateKey = i[UserDao.privateKey]
-			break
-		}
-		if (userDto == null || passWord == null) {
-			throw AuthorizationException("The username and/or password you specified are/is not correct.")
-		}
-		if (authenticate(loginDTO.password, passWord, privateKey ?: "")) {
+		val foundUser = database.from(UserDao).select().where { UserDao.name eq loginDTO.name }.map {
+			UserDto(
+				id = it[UserDao.id],
+				name = it[UserDao.name],
+				password = it[UserDao.password],
+				privateKey = it[UserDao.privateKey]
+			)
+		}.getOrNull(0) ?: throw AuthorizationException("The username and/or password you specified are/is not correct.")
+		if (authenticate(loginDTO.password, foundUser.password!!, foundUser.privateKey ?: "")) {
 			val newPrivateKey = generateSalt()
-			return getEncryptedPassword(System.currentTimeMillis().toString(), newPrivateKey)
+			val newSession = getEncryptedPassword(System.currentTimeMillis().toString(), newPrivateKey)
+			database.update(UserDao) {
+				set(UserDao.sessionId, newSession)
+				where {
+					UserDao.id eq foundUser.id!!
+				}
+			}
+			return newSession
 		} else {
 			throw AuthorizationException("The username and/or password you specified are/is not correct.")
 		}

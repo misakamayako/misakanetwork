@@ -40,12 +40,12 @@ object ImagesDAO : Table<Images>("img") {
 	val album = int("album").references(AlbumDAO) { it.album }
 }
 
-interface ImagesToAlbum : Entity<ImagesToAlbum> {
-	val imgId: Int
-	val albumId: Int
+interface ImgToCategory : Entity<ImgToCategory> {
+	val imgId: Images
+	val category: Category
 }
 
-object ImagesToAlbumDAO : Table<ImagesToAlbum>("img_to_album") {
-	val imgId = int("img_Id").bindTo { it.imgId }
-	val albumId = int("album_id").bindTo { it.albumId }
+object ImgToCategoryDAO : Table<ImgToCategory>("img_to_category") {
+	val imgId = int("img_id").references(ImagesDAO) { it.imgId }
+	val category = int("category").references(CategoryDAO) { it.category }
 }

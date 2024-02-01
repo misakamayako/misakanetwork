@@ -40,7 +40,11 @@ fun fileController(app: Application) {
                         }
 
                         is PartData.FormItem -> {
-                            bucket = if (it.value == "image") OSSInfo.PICTURE else OSSInfo.OpenSource
+							when(it.name){
+								"type"->{
+									bucket = if (it.value == "PICTURE") OSSInfo.PICTURE else OSSInfo.OpenSource
+								}
+							}
                         }
 
                         else -> {
@@ -52,7 +56,6 @@ fun fileController(app: Application) {
                         HttpStatusCode.Created,
                         ResponseDTO(data = fileService.fileUpload(fileBytes!!, bucket, tail))
                     )
-                    // todo: 使用intellij-markdown编译markdown文件
                 } else {
                     call.respond(
                         HttpStatusCode.BadRequest,

@@ -3,11 +3,12 @@ package cn.com.misakanetwork.service
 import cn.com.misakanetwork.dao.AlbumDAO
 import cn.com.misakanetwork.dao.CategoryDAO
 import cn.com.misakanetwork.dao.ImagesDAO
-import cn.com.misakanetwork.dao.ImagesToAlbumDAO
+import cn.com.misakanetwork.dao.ImgToCategoryDAO
 import cn.com.misakanetwork.dto.*
-import cn.com.misakanetwork.plugins.database
-import cn.com.misakanetwork.plugins.groupConcat
+import cn.com.misakanetwork.plugins.*
 import cn.com.misakanetwork.vo.ImageServiceVo
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import org.ktorm.database.asIterable
 import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
@@ -126,33 +127,57 @@ class ImgService : ImageServiceVo {
 		return PaginationDTO(total = 10, page = 1, pageSize = 1, data = query)
 	}
 
+	override fun ableToAccessAlbum(albumId: Int, cookie: RequestCookies) {
+		val album = albumBaseSql.where { AlbumDAO.id eq albumId }.map {
+			val category = getCategory(it)
+			AlbumDTO(
+				id = it[AlbumDAO.id]!!,
+				title = it[AlbumDAO.title]!!,
+				cover = it[AlbumDAO.cover],
+				category = category,
+				nsfw = false,
+				private = false
+			)
+		}.getOrNull(0) ?: throw NotFoundException()
+		val isLogin = checkLogin(cookie["__Secure-csrfToken"])
+		if (album.private && !isLogin) {
+			throw AuthorizationException("需要登录以后继续")
+		}
+		if (album.nsfw && cookie["__Secure-NSFW"] !== "T" && !isLogin) {
+			throw UnavailableForLegalReasons()
+		}
+	}
+
+	override suspend fun getAlbumList(): List<Int> {
+		return database.from(AlbumDAO).select(AlbumDAO.id).map { it[AlbumDAO.id] as Int }
+	}
+
 	override suspend fun getImgDetail(eigenvalues: String): ImgDetailDTO {
 		TODO("Not yet implemented")
 	}
 
-	override suspend fun uploadImg(imgUploadDTO: ImgUploadDTO): ImgDetailDTO {
+	override suspend fun uploadImg(imgUploadDTO: ImgUploadDTO): Unit {
+		val eigenvalue = Regex(pattern = """(/)(\w+?)(\.\w+?)$""").find(imgUploadDTO.fileUrl)?.groupValues?.get(2)
 		database.insert(ImagesDAO) {
-			set(ImagesDAO.eigenvalues, imgUploadDTO.fileUrl)
+			set(ImagesDAO.eigenvalues, eigenvalue)
 			set(ImagesDAO.name, imgUploadDTO.name)
-			set(ImagesDAO.nsfw, imgUploadDTO.nsfw)
 			set(ImagesDAO.album, imgUploadDTO.album)
 			set(ImagesDAO.nsfw, imgUploadDTO.nsfw)
 			set(ImagesDAO.private, imgUploadDTO.private)
 		}
 		if (!imgUploadDTO.categories.isNullOrEmpty()) {
 			val id = database.from(ImagesDAO).select(ImagesDAO.id).where {
-				ImagesDAO.eigenvalues eq imgUploadDTO.fileUrl
+				ImagesDAO.eigenvalues eq eigenvalue!!
 			}.map { it[ImagesDAO.id] }.firstOrNull() ?: throw InternalError("数据库更新失败")
-			database.batchInsert(ImagesToAlbumDAO) {
-				imgUploadDTO.categories.map {
+			database.batchInsert(ImgToCategoryDAO) {
+				imgUploadDTO.categories.map { categoryId ->
 					item {
-
+						set(ImgToCategoryDAO.imgId, id)
+						set(ImgToCategoryDAO.category, categoryId)
 					}
 				}
 			}
-
 		}
-		TODO("")
 	}
 
 	override suspend fun updateImg(updateImgDTO: UpdateImgDTO): ImgDetailDTO {
@@ -206,7 +231,8 @@ class ImgService : ImageServiceVo {
 				)
 				.groupBy(ImagesDAO.id)
 		}
-	private fun getImgList(query:Query):List<ImgDTO>{
+
+	private fun getImgList(query: Query): List<ImgDTO> {
 		return query.map {
 			val categoryIds = it.getArray("categoryIds")?.array as Array<*>?
 			val categories = it.getArray("categories")?.array as Array<*>?

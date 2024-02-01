@@ -9,6 +9,4 @@ create table if not exists file_mapping
 	create_at   datetime    not null,
 	delete_flag bool         default false
 );
-alter table file_mapping
-	add create_at datetime not null
 

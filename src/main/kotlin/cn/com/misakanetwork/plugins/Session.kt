@@ -23,7 +23,7 @@ fun setToken(call: ApplicationCall, token: String) {
         maxAge = 7 * 24 * 3600,
         httpOnly = true,
         secure = true,
-        path = "/lastOrder"
+        path = "/"
     )
     val resource = redisPool.resource
     resource.setex(token, 7 * 24 * 3600L, Date().toString())
@@ -37,12 +37,9 @@ fun getToken(call: ApplicationCall): String? {
 fun checkLogin(token: String?): Boolean {
     return if (token is String) {
         val resource = redisPool.resource
-        if (resource[token] != "") {
-            resource.close()
-            true
-        } else {
-            false
-        }
+		val flag = resource[token] != ""
+		resource.close()
+		flag
     } else {
         false
     }
